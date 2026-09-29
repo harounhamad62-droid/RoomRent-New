@@ -1420,3 +1420,3105 @@ if (
     initializeRoomRent();
 }
 
+/* =========================================================
+   ROOMRENT - SCRIPT.JS
+   SEHEMU YA 2
+   ROOMS + FIRESTORE + BOOKING LIMITS
+   ========================================================= */
+
+
+/* =========================================================
+   30. ROOM SETTINGS
+   ========================================================= */
+
+const ROOM_DURATION_DAYS = 90;
+
+const ROOM_PROFIT_RATE_PER_DAY = 0.04;
+
+
+/* =========================================================
+   31. ROOM DATA
+   ========================================================= */
+
+const ROOM_DATA = [
+
+    {
+        roomNumber: "0023",
+        price: 30000,
+        profitPerDay: 1200,
+        durationDays: ROOM_DURATION_DAYS,
+        maxPerUser: 2
+    },
+
+    {
+        roomNumber: "0024",
+        price: 70000,
+        profitPerDay: 2800,
+        durationDays: ROOM_DURATION_DAYS,
+        maxPerUser: 4
+    },
+
+    {
+        roomNumber: "0025",
+        price: 140000,
+        profitPerDay: 5600,
+        durationDays: ROOM_DURATION_DAYS,
+        maxPerUser: 4
+    },
+
+    {
+        roomNumber: "0026",
+        price: 210000,
+        profitPerDay: 8400,
+        durationDays: ROOM_DURATION_DAYS,
+        maxPerUser: 4
+    },
+
+    {
+        roomNumber: "0027",
+        price: 280000,
+        profitPerDay: 11200,
+        durationDays: ROOM_DURATION_DAYS,
+        maxPerUser: 4
+    },
+
+    {
+        roomNumber: "0028",
+        price: 350000,
+        profitPerDay: 14000,
+        durationDays: ROOM_DURATION_DAYS,
+        maxPerUser: 4
+    },
+
+    {
+        roomNumber: "0029",
+        price: 420000,
+        profitPerDay: 16800,
+        durationDays: ROOM_DURATION_DAYS,
+        maxPerUser: 4
+    },
+
+    {
+        roomNumber: "0030",
+        price: 490000,
+        profitPerDay: 19600,
+        durationDays: ROOM_DURATION_DAYS,
+        maxPerUser: 4
+    },
+
+    {
+        roomNumber: "0031",
+        price: 560000,
+        profitPerDay: 22400,
+        durationDays: ROOM_DURATION_DAYS,
+        maxPerUser: 4
+    },
+
+    {
+        roomNumber: "0032",
+        price: 630000,
+        profitPerDay: 25200,
+        durationDays: ROOM_DURATION_DAYS,
+        maxPerUser: 4
+    }
+
+];
+
+
+/* =========================================================
+   32. GET ROOM BY NUMBER
+   ========================================================= */
+
+function getRoomByNumber(roomNumber) {
+
+    return ROOM_DATA.find(
+        room =>
+            room.roomNumber === String(roomNumber)
+    );
+}
+
+
+/* =========================================================
+   33. CALCULATE TOTAL EXPECTED PROFIT
+   ========================================================= */
+
+function calculateRoomTotalProfit(room) {
+
+    if (!room) {
+        return 0;
+    }
+
+    return (
+        Number(room.profitPerDay || 0) *
+        Number(room.durationDays || ROOM_DURATION_DAYS)
+    );
+}
+
+
+/* =========================================================
+   34. CALCULATE TOTAL RETURN
+   ========================================================= */
+
+function calculateRoomTotalReturn(room) {
+
+    if (!room) {
+        return 0;
+    }
+
+    return (
+        Number(room.price || 0) +
+        calculateRoomTotalProfit(room)
+    );
+}
+
+
+/* =========================================================
+   35. LOAD ROOMS
+   ========================================================= */
+
+async function loadRooms() {
+
+    const roomsList =
+        getElement("roomsList");
+
+    if (!roomsList) {
+        return;
+    }
+
+    roomsList.innerHTML = `
+        <div class="loading-state">
+            Loading rooms...
+        </div>
+    `;
+
+    try {
+
+        /*
+         * First use Firestore room documents
+         * if the admin has created them.
+         */
+
+        let firestoreRooms = [];
+
+        if (db) {
+
+            const snapshot =
+                await db
+                    .collection("rooms")
+                    .orderBy("roomNumber")
+                    .get();
+
+            firestoreRooms =
+                snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+        }
+
+
+        /*
+         * If Firestore has rooms, use them.
+         * Otherwise use the official RoomRent
+         * default room configuration.
+         */
+
+        let rooms = [];
+
+        if (firestoreRooms.length > 0) {
+
+            rooms = firestoreRooms.map(
+                firestoreRoom => {
+
+                    const defaultRoom =
+                        getRoomByNumber(
+                            firestoreRoom.roomNumber
+                        );
+
+                    return {
+                        ...(defaultRoom || {}),
+                        ...firestoreRoom
+                    };
+                }
+            );
+
+        } else {
+
+            rooms = ROOM_DATA;
+        }
+
+
+        if (!rooms.length) {
+
+            roomsList.innerHTML = `
+                <div class="empty-state">
+                    Hakuna rooms zilizopatikana.
+                </div>
+            `;
+
+            return;
+        }
+
+
+        /*
+         * Render all rooms
+         */
+
+        roomsList.innerHTML = "";
+
+        for (const room of rooms) {
+
+            const card =
+                await createRoomCard(room);
+
+            roomsList.appendChild(card);
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Loading rooms error:",
+            error
+        );
+
+        /*
+         * If Firestore query fails,
+         * still show the default rooms.
+         */
+
+        roomsList.innerHTML = "";
+
+        for (const room of ROOM_DATA) {
+
+            const card =
+                await createRoomCard(room);
+
+            roomsList.appendChild(card);
+        }
+    }
+}
+
+
+/* =========================================================
+   36. CREATE ROOM CARD
+   ========================================================= */
+
+async function createRoomCard(room) {
+
+    const card =
+        document.createElement("div");
+
+    card.className = "room-card";
+
+
+    const price =
+        Number(room.price || 0);
+
+    const profitPerDay =
+        Number(room.profitPerDay || 0);
+
+    const duration =
+        Number(
+            room.durationDays ||
+            ROOM_DURATION_DAYS
+        );
+
+    const totalProfit =
+        calculateRoomTotalProfit(room);
+
+    const totalReturn =
+        calculateRoomTotalReturn(room);
+
+    const imageUrl =
+        room.imageUrl ||
+        room.image ||
+        "";
+
+
+    /*
+     * Check how many times the current
+     * customer has booked this room.
+     */
+
+    let bookingCount = 0;
+
+    if (currentUser) {
+
+        bookingCount =
+            await getUserRoomBookingCount(
+                currentUser.uid,
+                room.roomNumber
+            );
+    }
+
+
+    const maxPerUser =
+        Number(
+            room.maxPerUser ||
+            (
+                room.roomNumber === "0023"
+                    ? 2
+                    : 4
+            )
+        );
+
+
+    const remaining =
+        Math.max(
+            maxPerUser - bookingCount,
+            0
+        );
+
+
+    let imageHTML = "";
+
+    if (imageUrl) {
+
+        imageHTML = `
+            <div class="room-image">
+                <img
+                    src="${escapeHTML(imageUrl)}"
+                    alt="Room ${escapeHTML(room.roomNumber)}"
+                    loading="lazy"
+                >
+            </div>
+        `;
+    }
+
+
+    let limitHTML = `
+        <div class="room-limit">
+            Your bookings:
+            <strong>${bookingCount}/${maxPerUser}</strong>
+        </div>
+    `;
+
+
+    let buttonHTML = "";
+
+
+    if (!currentUser) {
+
+        buttonHTML = `
+            <button
+                type="button"
+                class="primary-button"
+                data-room-login="true"
+            >
+                Login to Rent
+            </button>
+        `;
+
+    } else if (remaining <= 0) {
+
+        buttonHTML = `
+            <button
+                type="button"
+                class="secondary-button"
+                disabled
+            >
+                Limit Reached
+            </button>
+        `;
+
+    } else {
+
+        buttonHTML = `
+            <button
+                type="button"
+                class="primary-button"
+                data-book-room="${escapeHTML(room.roomNumber)}"
+            >
+                Rent This Room
+            </button>
+        `;
+    }
+
+
+    card.innerHTML = `
+
+        ${imageHTML}
+
+        <div class="room-card-body">
+
+            <div class="room-card-header">
+
+                <h3>
+                    Room ${escapeHTML(room.roomNumber)}
+                </h3>
+
+                <span class="status-badge active">
+                    Active
+                </span>
+
+            </div>
+
+
+            <div class="room-price">
+
+                <span>Investment</span>
+
+                <strong>
+                    TSh ${formatMoney(price)}
+                </strong>
+
+            </div>
+
+
+            <div class="room-details">
+
+                <div>
+                    <span>Daily Profit</span>
+                    <strong>
+                        TSh ${formatMoney(profitPerDay)}
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>Duration</span>
+                    <strong>
+                        ${duration} days
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>Total Profit</span>
+                    <strong>
+                        TSh ${formatMoney(totalProfit)}
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>Total Return</span>
+                    <strong>
+                        TSh ${formatMoney(totalReturn)}
+                    </strong>
+                </div>
+
+            </div>
+
+
+            ${limitHTML}
+
+
+            <div class="room-card-action">
+
+                ${buttonHTML}
+
+            </div>
+
+        </div>
+    `;
+
+
+    /*
+     * Rent button
+     */
+
+    const rentButton =
+        card.querySelector(
+            "[data-book-room]"
+        );
+
+    if (rentButton) {
+
+        rentButton.addEventListener(
+            "click",
+            () => {
+
+                const roomNumber =
+                    rentButton.getAttribute(
+                        "data-book-room"
+                    );
+
+                openBookingPage(roomNumber);
+            }
+        );
+    }
+
+
+    /*
+     * Login button
+     */
+
+    const loginButton =
+        card.querySelector(
+            "[data-room-login]"
+        );
+
+    if (loginButton) {
+
+        loginButton.addEventListener(
+            "click",
+            () => {
+
+                showAuthScreen();
+                showLoginPanel();
+            }
+        );
+    }
+
+
+    return card;
+}
+
+
+/* =========================================================
+   37. ESCAPE HTML
+   ========================================================= */
+
+function escapeHTML(value) {
+
+    if (value === null ||
+        value === undefined) {
+
+        return "";
+    }
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+/* =========================================================
+   38. GET USER ROOM BOOKING COUNT
+   ========================================================= */
+
+async function getUserRoomBookingCount(
+    uid,
+    roomNumber
+) {
+
+    if (!uid || !db) {
+        return 0;
+    }
+
+    try {
+
+        const snapshot =
+            await db
+                .collection("bookings")
+                .where(
+                    "userId",
+                    "==",
+                    uid
+                )
+                .where(
+                    "roomNumber",
+                    "==",
+                    String(roomNumber)
+                )
+                .get();
+
+        return snapshot.size;
+
+    } catch (error) {
+
+        console.error(
+            "Booking count error:",
+            error
+        );
+
+        return 0;
+    }
+}
+
+
+/* =========================================================
+   39. GET USER TOTAL ROOM BOOKINGS
+   ========================================================= */
+
+async function getUserBookings(uid) {
+
+    if (!uid || !db) {
+        return [];
+    }
+
+    try {
+
+        const snapshot =
+            await db
+                .collection("bookings")
+                .where(
+                    "userId",
+                    "==",
+                    uid
+                )
+                .get();
+
+        return snapshot.docs.map(
+            doc => ({
+                id: doc.id,
+                ...doc.data()
+            })
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Getting bookings error:",
+            error
+        );
+
+        return [];
+    }
+}
+
+
+/* =========================================================
+   40. OPEN BOOKING PAGE
+   ========================================================= */
+
+async function openBookingPage(roomNumber) {
+
+    if (!currentUser) {
+
+        showAuthScreen();
+        showLoginPanel();
+
+        return;
+    }
+
+
+    const room =
+        getRoomByNumber(roomNumber);
+
+
+    if (!room) {
+
+        alert(
+            "Room hii haijapatikana."
+        );
+
+        return;
+    }
+
+
+    /*
+     * IMPORTANT:
+     * Check Firestore again before opening
+     * the booking screen.
+     */
+
+    const bookingCount =
+        await getUserRoomBookingCount(
+            currentUser.uid,
+            room.roomNumber
+        );
+
+
+    const maxPerUser =
+        room.roomNumber === "0023"
+            ? 2
+            : 4;
+
+
+    if (bookingCount >= maxPerUser) {
+
+        alert(
+            `Umefikia limit ya Room ${room.roomNumber}.`
+        );
+
+        await loadRooms();
+
+        return;
+    }
+
+
+    showSection("bookingSection");
+
+    renderBookingPage(
+        room,
+        bookingCount,
+        maxPerUser
+    );
+}
+
+
+/* =========================================================
+   41. RENDER BOOKING PAGE
+   ========================================================= */
+
+function renderBookingPage(
+    room,
+    bookingCount,
+    maxPerUser
+) {
+
+    const bookingContent =
+        getElement("bookingContent");
+
+    if (!bookingContent) {
+        return;
+    }
+
+
+    const totalProfit =
+        calculateRoomTotalProfit(room);
+
+    const totalReturn =
+        calculateRoomTotalReturn(room);
+
+
+    bookingContent.innerHTML = `
+
+        <div class="booking-card">
+
+            <div class="booking-header">
+
+                <h2>
+                    Room ${escapeHTML(
+                        room.roomNumber
+                    )}
+                </h2>
+
+                <p>
+                    Confirm your rental
+                </p>
+
+            </div>
+
+
+            <div class="booking-summary">
+
+                <div>
+                    <span>Investment</span>
+
+                    <strong>
+                        TSh ${formatMoney(
+                            room.price
+                        )}
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>Daily Profit</span>
+
+                    <strong>
+                        TSh ${formatMoney(
+                            room.profitPerDay
+                        )}
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>Duration</span>
+
+                    <strong>
+                        ${room.durationDays} days
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>Total Expected Profit</span>
+
+                    <strong>
+                        TSh ${formatMoney(
+                            totalProfit
+                        )}
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>Total Expected Return</span>
+
+                    <strong>
+                        TSh ${formatMoney(
+                            totalReturn
+                        )}
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>Your Room Limit</span>
+
+                    <strong>
+                        ${bookingCount}/${maxPerUser}
+                    </strong>
+                </div>
+
+            </div>
+
+
+            <div class="info-card">
+
+                <strong>
+                    Important
+                </strong>
+
+                <p>
+                    Baada ya booking kutengenezwa,
+                    malipo yatahitaji kuthibitishwa
+                    na admin kabla ya rental kuanza.
+                </p>
+
+            </div>
+
+
+            <div class="booking-actions">
+
+                <button
+                    type="button"
+                    class="primary-button"
+                    id="confirmRoomBookingButton"
+                >
+                    Confirm Rental
+                </button>
+
+
+                <button
+                    type="button"
+                    class="secondary-button"
+                    id="cancelRoomBookingButton"
+                >
+                    Cancel
+                </button>
+
+            </div>
+
+        </div>
+    `;
+
+
+    const confirmButton =
+        getElement(
+            "confirmRoomBookingButton"
+        );
+
+    if (confirmButton) {
+
+        confirmButton.addEventListener(
+            "click",
+            () => {
+
+                createRoomBooking(room);
+            }
+        );
+    }
+
+
+    const cancelButton =
+        getElement(
+            "cancelRoomBookingButton"
+        );
+
+    if (cancelButton) {
+
+        cancelButton.addEventListener(
+            "click",
+            () => {
+
+                showSection("roomsSection");
+                loadRooms();
+            }
+        );
+    }
+}
+
+
+/* =========================================================
+   42. GENERATE BOOKING NUMBER
+   ========================================================= */
+
+function generateBookingNumber() {
+
+    const timestamp =
+        Date.now().toString(36)
+            .toUpperCase();
+
+    const random =
+        Math.random()
+            .toString(36)
+            .substring(2, 7)
+            .toUpperCase();
+
+    return `RR-${timestamp}-${random}`;
+}
+
+
+/* =========================================================
+   43. CREATE ROOM BOOKING
+   ========================================================= */
+
+async function createRoomBooking(room) {
+
+    if (!currentUser || !db) {
+
+        alert(
+            "Tafadhali login kwanza."
+        );
+
+        return;
+    }
+
+
+    const confirmButton =
+        getElement(
+            "confirmRoomBookingButton"
+        );
+
+
+    if (confirmButton) {
+
+        confirmButton.disabled = true;
+
+        confirmButton.textContent =
+            "Creating booking...";
+    }
+
+
+    try {
+
+        /*
+         * Re-check booking count immediately
+         * before creating the document.
+         */
+
+        const existingBookings =
+            await getUserRoomBookingCount(
+                currentUser.uid,
+                room.roomNumber
+            );
+
+
+        const maxPerUser =
+            room.roomNumber === "0023"
+                ? 2
+                : 4;
+
+
+        if (existingBookings >= maxPerUser) {
+
+            throw new Error(
+                "Umefikia booking limit ya room hii."
+            );
+        }
+
+
+        /*
+         * Get latest customer information.
+         */
+
+        await loadCurrentUserData();
+
+
+        /*
+         * Generate unique booking number.
+         */
+
+        const bookingNumber =
+            generateBookingNumber();
+
+
+        /*
+         * Create Firestore booking.
+         */
+
+        const bookingData = {
+
+            bookingNumber:
+                bookingNumber,
+
+            userId:
+                currentUser.uid,
+
+            userEmail:
+                currentUser.email || "",
+
+            userName:
+                currentUserData?.name || "",
+
+            userPhone:
+                currentUserData?.phone || "",
+
+            roomNumber:
+                room.roomNumber,
+
+            roomPrice:
+                Number(room.price || 0),
+
+            profitPerDay:
+                Number(room.profitPerDay || 0),
+
+            durationDays:
+                Number(
+                    room.durationDays ||
+                    ROOM_DURATION_DAYS
+                ),
+
+            expectedTotalProfit:
+                calculateRoomTotalProfit(room),
+
+            expectedTotalReturn:
+                calculateRoomTotalReturn(room),
+
+            bookingCountForRoom:
+                existingBookings + 1,
+
+            status:
+                "pending_payment",
+
+            paymentStatus:
+                "pending",
+
+            rentalStatus:
+                "not_started",
+
+            profitStarted:
+                false,
+
+            totalProfitPaid:
+                0,
+
+            amountPaid:
+                0,
+
+            createdAt:
+                firebase.firestore.FieldValue.serverTimestamp(),
+
+            updatedAt:
+                firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+
+        /*
+         * Create booking document.
+         */
+
+        const bookingRef =
+            await db
+                .collection("bookings")
+                .add(bookingData);
+
+
+        /*
+         * Create customer transaction.
+         */
+
+        await db
+            .collection("users")
+            .doc(currentUser.uid)
+            .collection("transactions")
+            .add({
+
+                type:
+                    "booking_created",
+
+                bookingId:
+                    bookingRef.id,
+
+                bookingNumber:
+                    bookingNumber,
+
+                roomNumber:
+                    room.roomNumber,
+
+                amount:
+                    Number(room.price || 0),
+
+                status:
+                    "pending_payment",
+
+                createdAt:
+                    firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+
+        alert(
+            `Booking imeundwa!\n\nBooking Number: ${bookingNumber}\n\nTafadhali fuata maelekezo ya malipo na subiri uthibitisho wa admin.`
+        );
+
+
+        showSection(
+            "myBookingsSection"
+        );
+
+
+        await loadMyBookings();
+
+
+    } catch (error) {
+
+        console.error(
+            "Create booking error:",
+            error
+        );
+
+        alert(
+            error.message ||
+            "Imeshindikana kutengeneza booking."
+        );
+
+    } finally {
+
+        if (confirmButton) {
+
+            confirmButton.disabled = false;
+
+            confirmButton.textContent =
+                "Confirm Rental";
+        }
+    }
+}
+
+
+/* =========================================================
+   44. LOAD MY BOOKINGS
+   ========================================================= */
+
+async function loadMyBookings() {
+
+    const list =
+        getElement("myBookingsList");
+
+    if (!list || !currentUser) {
+        return;
+    }
+
+
+    list.innerHTML = `
+        <div class="loading-state">
+            Loading your bookings...
+        </div>
+    `;
+
+
+    try {
+
+        const bookings =
+            await getUserBookings(
+                currentUser.uid
+            );
+
+
+        if (!bookings.length) {
+
+            list.innerHTML = `
+                <div class="empty-state">
+                    <h3>No bookings yet</h3>
+
+                    <p>
+                        Bado hujakodisha room yoyote.
+                    </p>
+                </div>
+            `;
+
+            return;
+        }
+
+
+        /*
+         * Sort newest first.
+         */
+
+        bookings.sort(
+            (a, b) => {
+
+                const aTime =
+                    a.createdAt?.toMillis?.() || 0;
+
+                const bTime =
+                    b.createdAt?.toMillis?.() || 0;
+
+                return bTime - aTime;
+            }
+        );
+
+
+        list.innerHTML = "";
+
+
+        bookings.forEach(
+            booking => {
+
+                const card =
+                    createBookingCard(
+                        booking
+                    );
+
+                list.appendChild(card);
+            }
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Load my bookings error:",
+            error
+        );
+
+        list.innerHTML = `
+            <div class="empty-state">
+                Imeshindikana kupakia bookings.
+            </div>
+        `;
+    }
+}
+
+
+/* =========================================================
+   45. CREATE BOOKING CARD
+   ========================================================= */
+
+function createBookingCard(booking) {
+
+    const card =
+        document.createElement("div");
+
+    card.className =
+        "booking-history-card";
+
+
+    const createdAt =
+        formatFirestoreDate(
+            booking.createdAt
+        );
+
+
+    const status =
+        booking.status ||
+        "pending_payment";
+
+
+    const statusLabel =
+        formatBookingStatus(status);
+
+
+    card.innerHTML = `
+
+        <div class="booking-card-header">
+
+            <div>
+
+                <h3>
+                    Room ${escapeHTML(
+                        booking.roomNumber
+                    )}
+                </h3>
+
+                <small>
+                    ${escapeHTML(
+                        booking.bookingNumber || ""
+                    )}
+                </small>
+
+            </div>
+
+
+            <span class="status-badge">
+
+                ${escapeHTML(
+                    statusLabel
+                )}
+
+            </span>
+
+        </div>
+
+
+        <div class="booking-card-details">
+
+            <div>
+
+                <span>Investment</span>
+
+                <strong>
+                    TSh ${formatMoney(
+                        booking.roomPrice || 0
+                    )}
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Daily Profit</span>
+
+                <strong>
+                    TSh ${formatMoney(
+                        booking.profitPerDay || 0
+                    )}
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Duration</span>
+
+                <strong>
+                    ${booking.durationDays || 90}
+                    days
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Payment</span>
+
+                <strong>
+                    ${escapeHTML(
+                        formatBookingStatus(
+                            booking.paymentStatus ||
+                            "pending"
+                        )
+                    )}
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="booking-card-footer">
+
+            <span>
+                ${createdAt}
+            </span>
+
+        </div>
+    `;
+
+
+    return card;
+}
+
+
+/* =========================================================
+   46. FORMAT BOOKING STATUS
+   ========================================================= */
+
+function formatBookingStatus(status) {
+
+    const statuses = {
+
+        pending_payment:
+            "Pending Payment",
+
+        payment_submitted:
+            "Payment Submitted",
+
+        payment_confirmed:
+            "Payment Confirmed",
+
+        active:
+            "Active",
+
+        completed:
+            "Completed",
+
+        cancelled:
+            "Cancelled",
+
+        rejected:
+            "Rejected",
+
+        pending:
+            "Pending"
+    };
+
+
+    return statuses[status] ||
+        String(status)
+            .replace(/_/g, " ");
+}
+
+
+/* =========================================================
+   47. FORMAT FIRESTORE DATE
+   ========================================================= */
+
+function formatFirestoreDate(timestamp) {
+
+    if (!timestamp) {
+        return "-";
+    }
+
+
+    try {
+
+        const date =
+            timestamp.toDate
+                ? timestamp.toDate()
+                : new Date(timestamp);
+
+
+        return new Intl.DateTimeFormat(
+            "en-TZ",
+            {
+                dateStyle: "medium",
+                timeStyle: "short"
+            }
+        ).format(date);
+
+    } catch (error) {
+
+        return "-";
+    }
+}
+
+
+/* =========================================================
+   48. CONNECT ROOM BUTTON
+   ========================================================= */
+
+function bindRoomSectionEvents() {
+
+    const roomsNavButton =
+        getElement("roomsNavButton");
+
+    if (roomsNavButton) {
+
+        roomsNavButton.addEventListener(
+            "click",
+            async () => {
+
+                showSection(
+                    "roomsSection"
+                );
+
+                await loadRooms();
+            }
+        );
+    }
+
+
+    const viewRoomsButton =
+        getElement("viewRoomsButton");
+
+    if (viewRoomsButton) {
+
+        viewRoomsButton.addEventListener(
+            "click",
+            async () => {
+
+                showSection(
+                    "roomsSection"
+                );
+
+                await loadRooms();
+            }
+        );
+    }
+
+
+    const bookingsNavButton =
+        getElement("bookingsNavButton");
+
+    if (bookingsNavButton) {
+
+        bookingsNavButton.addEventListener(
+            "click",
+            async () => {
+
+                showSection(
+                    "myBookingsSection"
+                );
+
+                await loadMyBookings();
+            }
+        );
+    }
+
+
+    const myBookingsButton =
+        getElement("myBookingsButton");
+
+    if (myBookingsButton) {
+
+        myBookingsButton.addEventListener(
+            "click",
+            async () => {
+
+                showSection(
+                    "myBookingsSection"
+                );
+
+                await loadMyBookings();
+            }
+        );
+    }
+}
+
+
+/* =========================================================
+   49. EXTEND INITIALIZATION
+   ========================================================= */
+
+const originalInitializeRoomRent =
+    initializeRoomRent;
+
+
+initializeRoomRent = function () {
+
+    originalInitializeRoomRent();
+
+    bindRoomSectionEvents();
+
+};/* =========================================================
+   ROOMRENT - SCRIPT.JS
+   SEHEMU YA 2
+   ROOMS + FIRESTORE + BOOKING LIMITS
+   ========================================================= */
+
+
+/* =========================================================
+   30. ROOM SETTINGS
+   ========================================================= */
+
+const ROOM_DURATION_DAYS = 90;
+
+const ROOM_PROFIT_RATE_PER_DAY = 0.04;
+
+
+/* =========================================================
+   31. ROOM DATA
+   ========================================================= */
+
+const ROOM_DATA = [
+
+    {
+        roomNumber: "0023",
+        price: 30000,
+        profitPerDay: 1200,
+        durationDays: ROOM_DURATION_DAYS,
+        maxPerUser: 2
+    },
+
+    {
+        roomNumber: "0024",
+        price: 70000,
+        profitPerDay: 2800,
+        durationDays: ROOM_DURATION_DAYS,
+        maxPerUser: 4
+    },
+
+    {
+        roomNumber: "0025",
+        price: 140000,
+        profitPerDay: 5600,
+        durationDays: ROOM_DURATION_DAYS,
+        maxPerUser: 4
+    },
+
+    {
+        roomNumber: "0026",
+        price: 210000,
+        profitPerDay: 8400,
+        durationDays: ROOM_DURATION_DAYS,
+        maxPerUser: 4
+    },
+
+    {
+        roomNumber: "0027",
+        price: 280000,
+        profitPerDay: 11200,
+        durationDays: ROOM_DURATION_DAYS,
+        maxPerUser: 4
+    },
+
+    {
+        roomNumber: "0028",
+        price: 350000,
+        profitPerDay: 14000,
+        durationDays: ROOM_DURATION_DAYS,
+        maxPerUser: 4
+    },
+
+    {
+        roomNumber: "0029",
+        price: 420000,
+        profitPerDay: 16800,
+        durationDays: ROOM_DURATION_DAYS,
+        maxPerUser: 4
+    },
+
+    {
+        roomNumber: "0030",
+        price: 490000,
+        profitPerDay: 19600,
+        durationDays: ROOM_DURATION_DAYS,
+        maxPerUser: 4
+    },
+
+    {
+        roomNumber: "0031",
+        price: 560000,
+        profitPerDay: 22400,
+        durationDays: ROOM_DURATION_DAYS,
+        maxPerUser: 4
+    },
+
+    {
+        roomNumber: "0032",
+        price: 630000,
+        profitPerDay: 25200,
+        durationDays: ROOM_DURATION_DAYS,
+        maxPerUser: 4
+    }
+
+];
+
+
+/* =========================================================
+   32. GET ROOM BY NUMBER
+   ========================================================= */
+
+function getRoomByNumber(roomNumber) {
+
+    return ROOM_DATA.find(
+        room =>
+            room.roomNumber === String(roomNumber)
+    );
+}
+
+
+/* =========================================================
+   33. CALCULATE TOTAL EXPECTED PROFIT
+   ========================================================= */
+
+function calculateRoomTotalProfit(room) {
+
+    if (!room) {
+        return 0;
+    }
+
+    return (
+        Number(room.profitPerDay || 0) *
+        Number(room.durationDays || ROOM_DURATION_DAYS)
+    );
+}
+
+
+/* =========================================================
+   34. CALCULATE TOTAL RETURN
+   ========================================================= */
+
+function calculateRoomTotalReturn(room) {
+
+    if (!room) {
+        return 0;
+    }
+
+    return (
+        Number(room.price || 0) +
+        calculateRoomTotalProfit(room)
+    );
+}
+
+
+/* =========================================================
+   35. LOAD ROOMS
+   ========================================================= */
+
+async function loadRooms() {
+
+    const roomsList =
+        getElement("roomsList");
+
+    if (!roomsList) {
+        return;
+    }
+
+    roomsList.innerHTML = `
+        <div class="loading-state">
+            Loading rooms...
+        </div>
+    `;
+
+    try {
+
+        /*
+         * First use Firestore room documents
+         * if the admin has created them.
+         */
+
+        let firestoreRooms = [];
+
+        if (db) {
+
+            const snapshot =
+                await db
+                    .collection("rooms")
+                    .orderBy("roomNumber")
+                    .get();
+
+            firestoreRooms =
+                snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+        }
+
+
+        /*
+         * If Firestore has rooms, use them.
+         * Otherwise use the official RoomRent
+         * default room configuration.
+         */
+
+        let rooms = [];
+
+        if (firestoreRooms.length > 0) {
+
+            rooms = firestoreRooms.map(
+                firestoreRoom => {
+
+                    const defaultRoom =
+                        getRoomByNumber(
+                            firestoreRoom.roomNumber
+                        );
+
+                    return {
+                        ...(defaultRoom || {}),
+                        ...firestoreRoom
+                    };
+                }
+            );
+
+        } else {
+
+            rooms = ROOM_DATA;
+        }
+
+
+        if (!rooms.length) {
+
+            roomsList.innerHTML = `
+                <div class="empty-state">
+                    Hakuna rooms zilizopatikana.
+                </div>
+            `;
+
+            return;
+        }
+
+
+        /*
+         * Render all rooms
+         */
+
+        roomsList.innerHTML = "";
+
+        for (const room of rooms) {
+
+            const card =
+                await createRoomCard(room);
+
+            roomsList.appendChild(card);
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Loading rooms error:",
+            error
+        );
+
+        /*
+         * If Firestore query fails,
+         * still show the default rooms.
+         */
+
+        roomsList.innerHTML = "";
+
+        for (const room of ROOM_DATA) {
+
+            const card =
+                await createRoomCard(room);
+
+            roomsList.appendChild(card);
+        }
+    }
+}
+
+
+/* =========================================================
+   36. CREATE ROOM CARD
+   ========================================================= */
+
+async function createRoomCard(room) {
+
+    const card =
+        document.createElement("div");
+
+    card.className = "room-card";
+
+
+    const price =
+        Number(room.price || 0);
+
+    const profitPerDay =
+        Number(room.profitPerDay || 0);
+
+    const duration =
+        Number(
+            room.durationDays ||
+            ROOM_DURATION_DAYS
+        );
+
+    const totalProfit =
+        calculateRoomTotalProfit(room);
+
+    const totalReturn =
+        calculateRoomTotalReturn(room);
+
+    const imageUrl =
+        room.imageUrl ||
+        room.image ||
+        "";
+
+
+    /*
+     * Check how many times the current
+     * customer has booked this room.
+     */
+
+    let bookingCount = 0;
+
+    if (currentUser) {
+
+        bookingCount =
+            await getUserRoomBookingCount(
+                currentUser.uid,
+                room.roomNumber
+            );
+    }
+
+
+    const maxPerUser =
+        Number(
+            room.maxPerUser ||
+            (
+                room.roomNumber === "0023"
+                    ? 2
+                    : 4
+            )
+        );
+
+
+    const remaining =
+        Math.max(
+            maxPerUser - bookingCount,
+            0
+        );
+
+
+    let imageHTML = "";
+
+    if (imageUrl) {
+
+        imageHTML = `
+            <div class="room-image">
+                <img
+                    src="${escapeHTML(imageUrl)}"
+                    alt="Room ${escapeHTML(room.roomNumber)}"
+                    loading="lazy"
+                >
+            </div>
+        `;
+    }
+
+
+    let limitHTML = `
+        <div class="room-limit">
+            Your bookings:
+            <strong>${bookingCount}/${maxPerUser}</strong>
+        </div>
+    `;
+
+
+    let buttonHTML = "";
+
+
+    if (!currentUser) {
+
+        buttonHTML = `
+            <button
+                type="button"
+                class="primary-button"
+                data-room-login="true"
+            >
+                Login to Rent
+            </button>
+        `;
+
+    } else if (remaining <= 0) {
+
+        buttonHTML = `
+            <button
+                type="button"
+                class="secondary-button"
+                disabled
+            >
+                Limit Reached
+            </button>
+        `;
+
+    } else {
+
+        buttonHTML = `
+            <button
+                type="button"
+                class="primary-button"
+                data-book-room="${escapeHTML(room.roomNumber)}"
+            >
+                Rent This Room
+            </button>
+        `;
+    }
+
+
+    card.innerHTML = `
+
+        ${imageHTML}
+
+        <div class="room-card-body">
+
+            <div class="room-card-header">
+
+                <h3>
+                    Room ${escapeHTML(room.roomNumber)}
+                </h3>
+
+                <span class="status-badge active">
+                    Active
+                </span>
+
+            </div>
+
+
+            <div class="room-price">
+
+                <span>Investment</span>
+
+                <strong>
+                    TSh ${formatMoney(price)}
+                </strong>
+
+            </div>
+
+
+            <div class="room-details">
+
+                <div>
+                    <span>Daily Profit</span>
+                    <strong>
+                        TSh ${formatMoney(profitPerDay)}
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>Duration</span>
+                    <strong>
+                        ${duration} days
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>Total Profit</span>
+                    <strong>
+                        TSh ${formatMoney(totalProfit)}
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>Total Return</span>
+                    <strong>
+                        TSh ${formatMoney(totalReturn)}
+                    </strong>
+                </div>
+
+            </div>
+
+
+            ${limitHTML}
+
+
+            <div class="room-card-action">
+
+                ${buttonHTML}
+
+            </div>
+
+        </div>
+    `;
+
+
+    /*
+     * Rent button
+     */
+
+    const rentButton =
+        card.querySelector(
+            "[data-book-room]"
+        );
+
+    if (rentButton) {
+
+        rentButton.addEventListener(
+            "click",
+            () => {
+
+                const roomNumber =
+                    rentButton.getAttribute(
+                        "data-book-room"
+                    );
+
+                openBookingPage(roomNumber);
+            }
+        );
+    }
+
+
+    /*
+     * Login button
+     */
+
+    const loginButton =
+        card.querySelector(
+            "[data-room-login]"
+        );
+
+    if (loginButton) {
+
+        loginButton.addEventListener(
+            "click",
+            () => {
+
+                showAuthScreen();
+                showLoginPanel();
+            }
+        );
+    }
+
+
+    return card;
+}
+
+
+/* =========================================================
+   37. ESCAPE HTML
+   ========================================================= */
+
+function escapeHTML(value) {
+
+    if (value === null ||
+        value === undefined) {
+
+        return "";
+    }
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+/* =========================================================
+   38. GET USER ROOM BOOKING COUNT
+   ========================================================= */
+
+async function getUserRoomBookingCount(
+    uid,
+    roomNumber
+) {
+
+    if (!uid || !db) {
+        return 0;
+    }
+
+    try {
+
+        const snapshot =
+            await db
+                .collection("bookings")
+                .where(
+                    "userId",
+                    "==",
+                    uid
+                )
+                .where(
+                    "roomNumber",
+                    "==",
+                    String(roomNumber)
+                )
+                .get();
+
+        return snapshot.size;
+
+    } catch (error) {
+
+        console.error(
+            "Booking count error:",
+            error
+        );
+
+        return 0;
+    }
+}
+
+
+/* =========================================================
+   39. GET USER TOTAL ROOM BOOKINGS
+   ========================================================= */
+
+async function getUserBookings(uid) {
+
+    if (!uid || !db) {
+        return [];
+    }
+
+    try {
+
+        const snapshot =
+            await db
+                .collection("bookings")
+                .where(
+                    "userId",
+                    "==",
+                    uid
+                )
+                .get();
+
+        return snapshot.docs.map(
+            doc => ({
+                id: doc.id,
+                ...doc.data()
+            })
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Getting bookings error:",
+            error
+        );
+
+        return [];
+    }
+}
+
+
+/* =========================================================
+   40. OPEN BOOKING PAGE
+   ========================================================= */
+
+async function openBookingPage(roomNumber) {
+
+    if (!currentUser) {
+
+        showAuthScreen();
+        showLoginPanel();
+
+        return;
+    }
+
+
+    const room =
+        getRoomByNumber(roomNumber);
+
+
+    if (!room) {
+
+        alert(
+            "Room hii haijapatikana."
+        );
+
+        return;
+    }
+
+
+    /*
+     * IMPORTANT:
+     * Check Firestore again before opening
+     * the booking screen.
+     */
+
+    const bookingCount =
+        await getUserRoomBookingCount(
+            currentUser.uid,
+            room.roomNumber
+        );
+
+
+    const maxPerUser =
+        room.roomNumber === "0023"
+            ? 2
+            : 4;
+
+
+    if (bookingCount >= maxPerUser) {
+
+        alert(
+            `Umefikia limit ya Room ${room.roomNumber}.`
+        );
+
+        await loadRooms();
+
+        return;
+    }
+
+
+    showSection("bookingSection");
+
+    renderBookingPage(
+        room,
+        bookingCount,
+        maxPerUser
+    );
+}
+
+
+/* =========================================================
+   41. RENDER BOOKING PAGE
+   ========================================================= */
+
+function renderBookingPage(
+    room,
+    bookingCount,
+    maxPerUser
+) {
+
+    const bookingContent =
+        getElement("bookingContent");
+
+    if (!bookingContent) {
+        return;
+    }
+
+
+    const totalProfit =
+        calculateRoomTotalProfit(room);
+
+    const totalReturn =
+        calculateRoomTotalReturn(room);
+
+
+    bookingContent.innerHTML = `
+
+        <div class="booking-card">
+
+            <div class="booking-header">
+
+                <h2>
+                    Room ${escapeHTML(
+                        room.roomNumber
+                    )}
+                </h2>
+
+                <p>
+                    Confirm your rental
+                </p>
+
+            </div>
+
+
+            <div class="booking-summary">
+
+                <div>
+                    <span>Investment</span>
+
+                    <strong>
+                        TSh ${formatMoney(
+                            room.price
+                        )}
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>Daily Profit</span>
+
+                    <strong>
+                        TSh ${formatMoney(
+                            room.profitPerDay
+                        )}
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>Duration</span>
+
+                    <strong>
+                        ${room.durationDays} days
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>Total Expected Profit</span>
+
+                    <strong>
+                        TSh ${formatMoney(
+                            totalProfit
+                        )}
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>Total Expected Return</span>
+
+                    <strong>
+                        TSh ${formatMoney(
+                            totalReturn
+                        )}
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>Your Room Limit</span>
+
+                    <strong>
+                        ${bookingCount}/${maxPerUser}
+                    </strong>
+                </div>
+
+            </div>
+
+
+            <div class="info-card">
+
+                <strong>
+                    Important
+                </strong>
+
+                <p>
+                    Baada ya booking kutengenezwa,
+                    malipo yatahitaji kuthibitishwa
+                    na admin kabla ya rental kuanza.
+                </p>
+
+            </div>
+
+
+            <div class="booking-actions">
+
+                <button
+                    type="button"
+                    class="primary-button"
+                    id="confirmRoomBookingButton"
+                >
+                    Confirm Rental
+                </button>
+
+
+                <button
+                    type="button"
+                    class="secondary-button"
+                    id="cancelRoomBookingButton"
+                >
+                    Cancel
+                </button>
+
+            </div>
+
+        </div>
+    `;
+
+
+    const confirmButton =
+        getElement(
+            "confirmRoomBookingButton"
+        );
+
+    if (confirmButton) {
+
+        confirmButton.addEventListener(
+            "click",
+            () => {
+
+                createRoomBooking(room);
+            }
+        );
+    }
+
+
+    const cancelButton =
+        getElement(
+            "cancelRoomBookingButton"
+        );
+
+    if (cancelButton) {
+
+        cancelButton.addEventListener(
+            "click",
+            () => {
+
+                showSection("roomsSection");
+                loadRooms();
+            }
+        );
+    }
+}
+
+
+/* =========================================================
+   42. GENERATE BOOKING NUMBER
+   ========================================================= */
+
+function generateBookingNumber() {
+
+    const timestamp =
+        Date.now().toString(36)
+            .toUpperCase();
+
+    const random =
+        Math.random()
+            .toString(36)
+            .substring(2, 7)
+            .toUpperCase();
+
+    return `RR-${timestamp}-${random}`;
+}
+
+
+/* =========================================================
+   43. CREATE ROOM BOOKING
+   ========================================================= */
+
+async function createRoomBooking(room) {
+
+    if (!currentUser || !db) {
+
+        alert(
+            "Tafadhali login kwanza."
+        );
+
+        return;
+    }
+
+
+    const confirmButton =
+        getElement(
+            "confirmRoomBookingButton"
+        );
+
+
+    if (confirmButton) {
+
+        confirmButton.disabled = true;
+
+        confirmButton.textContent =
+            "Creating booking...";
+    }
+
+
+    try {
+
+        /*
+         * Re-check booking count immediately
+         * before creating the document.
+         */
+
+        const existingBookings =
+            await getUserRoomBookingCount(
+                currentUser.uid,
+                room.roomNumber
+            );
+
+
+        const maxPerUser =
+            room.roomNumber === "0023"
+                ? 2
+                : 4;
+
+
+        if (existingBookings >= maxPerUser) {
+
+            throw new Error(
+                "Umefikia booking limit ya room hii."
+            );
+        }
+
+
+        /*
+         * Get latest customer information.
+         */
+
+        await loadCurrentUserData();
+
+
+        /*
+         * Generate unique booking number.
+         */
+
+        const bookingNumber =
+            generateBookingNumber();
+
+
+        /*
+         * Create Firestore booking.
+         */
+
+        const bookingData = {
+
+            bookingNumber:
+                bookingNumber,
+
+            userId:
+                currentUser.uid,
+
+            userEmail:
+                currentUser.email || "",
+
+            userName:
+                currentUserData?.name || "",
+
+            userPhone:
+                currentUserData?.phone || "",
+
+            roomNumber:
+                room.roomNumber,
+
+            roomPrice:
+                Number(room.price || 0),
+
+            profitPerDay:
+                Number(room.profitPerDay || 0),
+
+            durationDays:
+                Number(
+                    room.durationDays ||
+                    ROOM_DURATION_DAYS
+                ),
+
+            expectedTotalProfit:
+                calculateRoomTotalProfit(room),
+
+            expectedTotalReturn:
+                calculateRoomTotalReturn(room),
+
+            bookingCountForRoom:
+                existingBookings + 1,
+
+            status:
+                "pending_payment",
+
+            paymentStatus:
+                "pending",
+
+            rentalStatus:
+                "not_started",
+
+            profitStarted:
+                false,
+
+            totalProfitPaid:
+                0,
+
+            amountPaid:
+                0,
+
+            createdAt:
+                firebase.firestore.FieldValue.serverTimestamp(),
+
+            updatedAt:
+                firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+
+        /*
+         * Create booking document.
+         */
+
+        const bookingRef =
+            await db
+                .collection("bookings")
+                .add(bookingData);
+
+
+        /*
+         * Create customer transaction.
+         */
+
+        await db
+            .collection("users")
+            .doc(currentUser.uid)
+            .collection("transactions")
+            .add({
+
+                type:
+                    "booking_created",
+
+                bookingId:
+                    bookingRef.id,
+
+                bookingNumber:
+                    bookingNumber,
+
+                roomNumber:
+                    room.roomNumber,
+
+                amount:
+                    Number(room.price || 0),
+
+                status:
+                    "pending_payment",
+
+                createdAt:
+                    firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+
+        alert(
+            `Booking imeundwa!\n\nBooking Number: ${bookingNumber}\n\nTafadhali fuata maelekezo ya malipo na subiri uthibitisho wa admin.`
+        );
+
+
+        showSection(
+            "myBookingsSection"
+        );
+
+
+        await loadMyBookings();
+
+
+    } catch (error) {
+
+        console.error(
+            "Create booking error:",
+            error
+        );
+
+        alert(
+            error.message ||
+            "Imeshindikana kutengeneza booking."
+        );
+
+    } finally {
+
+        if (confirmButton) {
+
+            confirmButton.disabled = false;
+
+            confirmButton.textContent =
+                "Confirm Rental";
+        }
+    }
+}
+
+
+/* =========================================================
+   44. LOAD MY BOOKINGS
+   ========================================================= */
+
+async function loadMyBookings() {
+
+    const list =
+        getElement("myBookingsList");
+
+    if (!list || !currentUser) {
+        return;
+    }
+
+
+    list.innerHTML = `
+        <div class="loading-state">
+            Loading your bookings...
+        </div>
+    `;
+
+
+    try {
+
+        const bookings =
+            await getUserBookings(
+                currentUser.uid
+            );
+
+
+        if (!bookings.length) {
+
+            list.innerHTML = `
+                <div class="empty-state">
+                    <h3>No bookings yet</h3>
+
+                    <p>
+                        Bado hujakodisha room yoyote.
+                    </p>
+                </div>
+            `;
+
+            return;
+        }
+
+
+        /*
+         * Sort newest first.
+         */
+
+        bookings.sort(
+            (a, b) => {
+
+                const aTime =
+                    a.createdAt?.toMillis?.() || 0;
+
+                const bTime =
+                    b.createdAt?.toMillis?.() || 0;
+
+                return bTime - aTime;
+            }
+        );
+
+
+        list.innerHTML = "";
+
+
+        bookings.forEach(
+            booking => {
+
+                const card =
+                    createBookingCard(
+                        booking
+                    );
+
+                list.appendChild(card);
+            }
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Load my bookings error:",
+            error
+        );
+
+        list.innerHTML = `
+            <div class="empty-state">
+                Imeshindikana kupakia bookings.
+            </div>
+        `;
+    }
+}
+
+
+/* =========================================================
+   45. CREATE BOOKING CARD
+   ========================================================= */
+
+function createBookingCard(booking) {
+
+    const card =
+        document.createElement("div");
+
+    card.className =
+        "booking-history-card";
+
+
+    const createdAt =
+        formatFirestoreDate(
+            booking.createdAt
+        );
+
+
+    const status =
+        booking.status ||
+        "pending_payment";
+
+
+    const statusLabel =
+        formatBookingStatus(status);
+
+
+    card.innerHTML = `
+
+        <div class="booking-card-header">
+
+            <div>
+
+                <h3>
+                    Room ${escapeHTML(
+                        booking.roomNumber
+                    )}
+                </h3>
+
+                <small>
+                    ${escapeHTML(
+                        booking.bookingNumber || ""
+                    )}
+                </small>
+
+            </div>
+
+
+            <span class="status-badge">
+
+                ${escapeHTML(
+                    statusLabel
+                )}
+
+            </span>
+
+        </div>
+
+
+        <div class="booking-card-details">
+
+            <div>
+
+                <span>Investment</span>
+
+                <strong>
+                    TSh ${formatMoney(
+                        booking.roomPrice || 0
+                    )}
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Daily Profit</span>
+
+                <strong>
+                    TSh ${formatMoney(
+                        booking.profitPerDay || 0
+                    )}
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Duration</span>
+
+                <strong>
+                    ${booking.durationDays || 90}
+                    days
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Payment</span>
+
+                <strong>
+                    ${escapeHTML(
+                        formatBookingStatus(
+                            booking.paymentStatus ||
+                            "pending"
+                        )
+                    )}
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="booking-card-footer">
+
+            <span>
+                ${createdAt}
+            </span>
+
+        </div>
+    `;
+
+
+    return card;
+}
+
+
+/* =========================================================
+   46. FORMAT BOOKING STATUS
+   ========================================================= */
+
+function formatBookingStatus(status) {
+
+    const statuses = {
+
+        pending_payment:
+            "Pending Payment",
+
+        payment_submitted:
+            "Payment Submitted",
+
+        payment_confirmed:
+            "Payment Confirmed",
+
+        active:
+            "Active",
+
+        completed:
+            "Completed",
+
+        cancelled:
+            "Cancelled",
+
+        rejected:
+            "Rejected",
+
+        pending:
+            "Pending"
+    };
+
+
+    return statuses[status] ||
+        String(status)
+            .replace(/_/g, " ");
+}
+
+
+/* =========================================================
+   47. FORMAT FIRESTORE DATE
+   ========================================================= */
+
+function formatFirestoreDate(timestamp) {
+
+    if (!timestamp) {
+        return "-";
+    }
+
+
+    try {
+
+        const date =
+            timestamp.toDate
+                ? timestamp.toDate()
+                : new Date(timestamp);
+
+
+        return new Intl.DateTimeFormat(
+            "en-TZ",
+            {
+                dateStyle: "medium",
+                timeStyle: "short"
+            }
+        ).format(date);
+
+    } catch (error) {
+
+        return "-";
+    }
+}
+
+
+/* =========================================================
+   48. CONNECT ROOM BUTTON
+   ========================================================= */
+
+function bindRoomSectionEvents() {
+
+    const roomsNavButton =
+        getElement("roomsNavButton");
+
+    if (roomsNavButton) {
+
+        roomsNavButton.addEventListener(
+            "click",
+            async () => {
+
+                showSection(
+                    "roomsSection"
+                );
+
+                await loadRooms();
+            }
+        );
+    }
+
+
+    const viewRoomsButton =
+        getElement("viewRoomsButton");
+
+    if (viewRoomsButton) {
+
+        viewRoomsButton.addEventListener(
+            "click",
+            async () => {
+
+                showSection(
+                    "roomsSection"
+                );
+
+                await loadRooms();
+            }
+        );
+    }
+
+
+    const bookingsNavButton =
+        getElement("bookingsNavButton");
+
+    if (bookingsNavButton) {
+
+        bookingsNavButton.addEventListener(
+            "click",
+            async () => {
+
+                showSection(
+                    "myBookingsSection"
+                );
+
+                await loadMyBookings();
+            }
+        );
+    }
+
+
+    const myBookingsButton =
+        getElement("myBookingsButton");
+
+    if (myBookingsButton) {
+
+        myBookingsButton.addEventListener(
+            "click",
+            async () => {
+
+                showSection(
+                    "myBookingsSection"
+                );
+
+                await loadMyBookings();
+            }
+        );
+    }
+}
+
+
+/* =========================================================
+   49. EXTEND INITIALIZATION
+   ========================================================= */
+
+const originalInitializeRoomRent =
+    initializeRoomRent;
+
+
+initializeRoomRent = function () {
+
+    originalInitializeRoomRent();
+
+    bindRoomSectionEvents();
+
+};
+
