@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="RoomRent Tanzania - Room Rent Investment Platform"
+    >
+
+    <meta
+        name="theme-color"
+        content="#0f766e"
+    >
+
+    <title>RoomRent Tanzania</title>
+
+    <!-- =====================================================
+         ROOMRENT CSS
+    ====================================================== -->
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+</head>
+
+<body>
+
+    <!-- =====================================================
+         GLOBAL LOADING
+    ====================================================== -->
+
+    <div
+        id="globalLoading"
+        class="global-loading"
+        style="display: none;"
+    >
+        <div class="loading-box">
+            <div class="loading-spinner"></div>
+
+            <p id="globalLoadingText">
+                Inapakia...
+            </p>
+        </div>
+    </div>
+
+
+    <!-- =====================================================
+         GLOBAL TOAST
+    ====================================================== -->
+
+    <div
+        id="globalToast"
+        class="global-toast"
+        style="display: none;"
+    ></div>
+
+
+    <!-- =====================================================
+         AUTHENTICATION SCREEN
+    ====================================================== -->
+
+    <main
+        id="authScreen"
+        class="auth-screen"
+    >
+
+        <div class="auth-container">
+
+            <!-- BRAND -->
+
+            <div class="brand-section">
+
+                <div class="brand-logo">
+                    RR
+                </div>
+
+                <h1>
+                    RoomRent
+                </h1>
+
+                <p>
+                    Room Rent Investment
+                </p>
+
+            </div>
+
+
+            <!-- =================================================
+                 LOGIN PANEL
+            ================================================== -->
+
+            <section
+                id="loginPanel"
+                class="auth-panel"
+            >
+
+                <div class="auth-header">
+
+                    <h2>
+                        Karibu RoomRent
+                    </h2>
+
+                    <p>
+                        Ingia kwenye akaunti yako
+                    </p>
+
+                </div>
+
+
+                <form
+                    id="signInForm"
+                    novalidate
+                >
+
+                    <!-- EMAIL -->
+
+                    <div class="form-group">
+
+                        <label for="signInEmail">
+                            Email
+                        </label>
+
+                        <input
+                            type="email"
+                            id="signInEmail"
+                            name="email"
+                            placeholder="Weka email yako"
+                            autocomplete="email"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- PASSWORD -->
+
+                    <div class="form-group">
+
+                        <label for="signInPassword">
+                            Password
+                        </label>
+
+                        <input
+                            type="password"
+                            id="signInPassword"
+                            name="password"
+                            placeholder="Weka password yako"
+                            autocomplete="current-password"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- MESSAGE -->
+
+                    <div
+                        id="signInMessage"
+                        class="form-message"
+                        aria-live="polite"
+                    ></div>
+
+
+                    <!-- LOGIN BUTTON -->
+
+                    <button
+                        type="submit"
+                        id="signInButton"
+                        class="primary-button"
+                    >
+                        Ingia
+                    </button>
+
+                </form>
+
+
+                <!-- FORGOT PASSWORD -->
+
+                <button
+                    type="button"
+                    id="showForgotPasswordButton"
+                    class="text-button"
+                >
+                    Umesahau password?
+                </button>
+
+
+                <div class="auth-divider">
+                    <span>au</span>
+                </div>
+
+
+                <!-- CREATE ACCOUNT -->
+
+                <button
+                    type="button"
+                    id="showRegisterButton"
+                    class="secondary-button"
+                >
+                    Fungua Akaunti
+                </button>
+
+            </section>
+
+
+            <!-- =================================================
+                 FORGOT PASSWORD PANEL
+            ================================================== -->
+
+            <section
+                id="forgotPasswordPanel"
+                class="auth-panel"
+                style="display: none;"
+            >
+
+                <div class="auth-header">
+
+                    <h2>
+                        Reset Password
+                    </h2>
+
+                    <p>
+                        Weka email yako ili upokee
+                        maelekezo ya kubadilisha password.
+                    </p>
+
+                </div>
+
+
+                <form
+                    id="forgotPasswordForm"
+                    novalidate
+                >
+
+                    <div class="form-group">
+
+                        <label for="forgotPasswordEmail">
+                            Email
+                        </label>
+
+                        <input
+                            type="email"
+                            id="forgotPasswordEmail"
+                            name="email"
+                            placeholder="Weka email yako"
+                            autocomplete="email"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div
+                        id="forgotPasswordMessage"
+                        class="form-message"
+                        aria-live="polite"
+                    ></div>
+
+
+                    <button
+                        type="submit"
+                        id="forgotPasswordButton"
+                        class="primary-button"
+                    >
+                        Tuma Reset Link
+                    </button>
+
+                </form>
+
+
+                <button
+                    type="button"
+                    id="backToLoginButton"
+                    class="text-button"
+                >
+                    ← Rudi kwenye Login
+                </button>
+
+            </section>
+
+
+            <!-- =================================================
+                 REGISTRATION PANEL
+            ================================================== -->
+
+            <section
+                id="signUpPanel"
+                class="auth-panel"
+                style="display: none;"
+            >
+
+                <div class="auth-header">
+
+                    <h2>
+                        Fungua Akaunti
+                    </h2>
+
+                    <p>
+                        Jisajili kuanza kutumia RoomRent
+                    </p>
+
+                </div>
+
+
+                <form
+                    id="signUpForm"
+                    novalidate
+                >
+
+                    <!-- NAME -->
+
+                    <div class="form-group">
+
+                        <label for="signUpName">
+                            Jina kamili
+                        </label>
+
+                        <input
+                            type="text"
+                            id="signUpName"
+                            name="name"
+                            placeholder="Weka jina lako"
+                            autocomplete="name"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- PHONE -->
+
+                    <div class="form-group">
+
+                        <label for="signUpPhone">
+                            Namba ya simu
+                        </label>
+
+                        <input
+                            type="tel"
+                            id="signUpPhone"
+                            name="phone"
+                            placeholder="Mfano: 0712345678"
+                            autocomplete="tel"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- EMAIL -->
+
+                    <div class="form-group">
+
+                        <label for="signUpEmail">
+                            Email
+                        </label>
+
+                        <input
+                            type="email"
+                            id="signUpEmail"
+                            name="email"
+                            placeholder="Weka email yako"
+                            autocomplete="email"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- PASSWORD -->
+
+                    <div class="form-group">
+
+                        <label for="signUpPassword">
+                            Password
+                        </label>
+
+                        <input
+                            type="password"
+                            id="signUpPassword"
+                            name="password"
+                            placeholder="Unda password"
+                            autocomplete="new-password"
+                            minlength="6"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- REFERRAL -->
+
+                    <div class="form-group">
+
+                        <label for="signUpReferral">
+                            Referral Code
+                            <span class="optional">
+                                (hiari)
+                            </span>
+                        </label>
+
+                        <input
+                            type="text"
+                            id="signUpReferral"
+                            name="referral"
+                            placeholder="Weka referral code kama unayo"
+                            autocomplete="off"
+                        >
+
+                    </div>
+
+
+                    <!-- MESSAGE -->
+
+                    <div
+                        id="signUpMessage"
+                        class="form-message"
+                        aria-live="polite"
+                    ></div>
+
+
+                    <!-- SIGN UP -->
+
+                    <button
+                        type="submit"
+                        id="signUpButton"
+                        class="primary-button"
+                    >
+                        Fungua Akaunti
+                    </button>
+
+                </form>
+
+
+                <button
+                    type="button"
+                    id="showLoginButton"
+                    class="text-button"
+                >
+                    ← Tayari nina akaunti
+                </button>
+
+            </section>
+
+        </div>
+
+    </main>
+
+
+    <!-- =====================================================
+         MAIN APPLICATION
+    ====================================================== -->
+
+    <main
+        id="appScreen"
+        class="app-screen"
+        style="display: none;"
+    >
+
+        <!-- =================================================
+             APP HEADER
+        ================================================== -->
+
+        <header
+            id="appHeader"
+            class="app-header"
+        >
+
+            <div class="app-brand">
+
+                <div class="app-logo">
+                    RR
+                </div>
+
+                <div>
+
+                    <strong>
+                        RoomRent
+                    </strong>
+
+                    <span>
+                        Investment
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <button
+                type="button"
+                id="signOutButton"
+                class="logout-button"
+            >
+                Toka
+            </button>
+
+        </header>
+
+
+        <!-- =================================================
+             MAIN CONTENT
+        ================================================== -->
+
+        <div
+            id="appContent"
+            class="app-content"
+        >
+
+            <!-- =================================================
+                 DASHBOARD
+            ================================================== -->
+
+            <section
+                id="dashboardSection"
+                class="app-section"
+            >
+
+                <div class="welcome-block">
+
+                    <p>
+                        Karibu,
+                    </p>
+
+                    <h2 id="dashboardUserName">
+                        RoomRent User
+                    </h2>
+
+                </div>
+
+
+                <!-- WALLET -->
+
+                <div
+                    id="mainWallet"
+                    class="wallet-card"
+                >
+
+                    <div class="wallet-top">
+
+                        <span>
+                            Salio la Wallet
+                        </span>
+
+                        <span>
+                            TSh
+                        </span>
+
+                    </div>
+
+
+                    <div
+                        id="walletBalance"
+                        class="wallet-balance"
+                    >
+                        TSh 0
+                    </div>
+
+
+                    <div class="wallet-bottom">
+
+                        <span>
+                            Profit
+                        </span>
+
+                        <strong id="walletProfit">
+                            TSh 0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ACTIONS -->
+
+                <div class="dashboard-actions">
+
+                    <button
+                        type="button"
+                        id="viewRoomsButton"
+                        class="action-card"
+                    >
+                        <span class="action-icon">
+                            🏠
+                        </span>
+
+                        <strong>
+                            Vyumba
+                        </strong>
+
+                        <small>
+                            Angalia rooms
+                        </small>
+                    </button>
+
+
+                    <button
+                        type="button"
+                        id="myBookingsButton"
+                        class="action-card"
+                    >
+                        <span class="action-icon">
+                            📋
+                        </span>
+
+                        <strong>
+                            Bookings Zangu
+                        </strong>
+
+                        <small>
+                            Historia ya bookings
+                        </small>
+                    </button>
+
+
+                    <button
+                        type="button"
+                        id="withdrawButton"
+                        class="action-card"
+                    >
+                        <span class="action-icon">
+                            💰
+                        </span>
+
+                        <strong>
+                            Withdraw
+                        </strong>
+
+                        <small>
+                            Toa fedha
+                        </small>
+                    </button>
+
+
+                    <button
+                        type="button"
+                        id="referralButton"
+                        class="action-card"
+                    >
+                        <span class="action-icon">
+                            🔗
+                        </span>
+
+                        <strong>
+                            Referral
+                        </strong>
+
+                        <small>
+                            Alika wengine
+                        </small>
+                    </button>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 ROOMS
+            ================================================== -->
+
+            <section
+                id="roomsSection"
+                class="app-section"
+                style="display: none;"
+            >
+
+                <div class="section-header">
+
+                    <button
+                        type="button"
+                        id="roomsBackButton"
+                        class="back-button"
+                    >
+                        ←
+                    </button>
+
+                    <div>
+
+                        <h2>
+                            Vyumba
+                        </h2>
+
+                        <p>
+                            Chagua room ya kuwekeza
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="roomsList"
+                    class="rooms-list"
+                ></div>
+
+            </section>
+
+
+            <!-- =================================================
+                 BOOKING
+            ================================================== -->
+
+            <section
+                id="bookingSection"
+                class="app-section"
+                style="display: none;"
+            >
+
+                <div class="section-header">
+
+                    <button
+                        type="button"
+                        id="bookingBackButton"
+                        class="back-button"
+                    >
+                        ←
+                    </button>
+
+                    <div>
+
+                        <h2>
+                            Booking
+                        </h2>
+
+                        <p>
+                            Thibitisha room yako
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="bookingContent"
+                    class="booking-content"
+                ></div>
+
+            </section>
+
+
+            <!-- =================================================
+                 MY BOOKINGS
+            ================================================== -->
+
+            <section
+                id="myBookingsSection"
+                class="app-section"
+                style="display: none;"
+            >
+
+                <div class="section-header">
+
+                    <button
+                        type="button"
+                        id="myBookingsBackButton"
+                        class="back-button"
+                    >
+                        ←
+                    </button>
+
+                    <div>
+
+                        <h2>
+                            Bookings Zangu
+                        </h2>
+
+                        <p>
+                            Historia ya uwekezaji wako
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="myBookingsList"
+                    class="bookings-list"
+                ></div>
+
+            </section>
+
+
+            <!-- =================================================
+                 WITHDRAWAL
+            ================================================== -->
+
+            <section
+                id="withdrawalSection"
+                class="app-section"
+                style="display: none;"
+            >
+
+                <div class="section-header">
+
+                    <button
+                        type="button"
+                        id="withdrawalBackButton"
+                        class="back-button"
+                    >
+                        ←
+                    </button>
+
+                    <div>
+
+                        <h2>
+                            Withdraw
+                        </h2>
+
+                        <p>
+                            Toa fedha kutoka wallet
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="info-card">
+
+                    <p>
+                        Minimum withdrawal:
+                    </p>
+
+                    <strong>
+                        TSh 3,000
+                    </strong>
+
+                    <p>
+                        Withdrawal fee: 10%
+                    </p>
+
+                </div>
+
+
+                <form
+                    id="withdrawalForm"
+                    class="app-form"
+                >
+
+                    <div class="form-group">
+
+                        <label for="withdrawalAmount">
+                            Kiasi
+                        </label>
+
+                        <input
+                            type="number"
+                            id="withdrawalAmount"
+                            min="3000"
+                            step="1"
+                            placeholder="Mfano: 5000"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="withdrawalMethod">
+                            Njia ya malipo
+                        </label>
+
+                        <select
+                            id="withdrawalMethod"
+                            required
+                        >
+
+                            <option value="">
+                                Chagua njia
+                            </option>
+
+                            <option value="airtel">
+                                Airtel Money
+                            </option>
+
+                            <option value="mixx">
+                                MIXX BY YAS
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="withdrawalPhone">
+                            Namba ya simu
+                        </label>
+
+                        <input
+                            type="tel"
+                            id="withdrawalPhone"
+                            placeholder="0712345678"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div
+                        id="withdrawalMessage"
+                        class="form-message"
+                        aria-live="polite"
+                    ></div>
+
+
+                    <button
+                        type="submit"
+                        id="withdrawalSubmitButton"
+                        class="primary-button"
+                    >
+                        Tuma Withdrawal
+                    </button>
+
+                </form>
+
+            </section>
+
+
+            <!-- =================================================
+                 WITHDRAWAL HISTORY
+            ================================================== -->
+
+            <section
+                id="withdrawalHistorySection"
+                class="app-section"
+                style="display: none;"
+            >
+
+                <div class="section-header">
+
+                    <button
+                        type="button"
+                        id="withdrawalHistoryBackButton"
+                        class="back-button"
+                    >
+                        ←
+                    </button>
+
+                    <div>
+
+                        <h2>
+                            Withdrawal History
+                        </h2>
+
+                        <p>
+                            Historia ya withdrawals
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="withdrawalHistoryList"
+                    class="history-list"
+                ></div>
+
+            </section>
+
+
+            <!-- =================================================
+                 REFERRAL
+            ================================================== -->
+
+            <section
+                id="referralSection"
+                class="app-section"
+                style="display: none;"
+            >
+
+                <div class="section-header">
+
+                    <button
+                        type="button"
+                        id="referralBackButton"
+                        class="back-button"
+                    >
+                        ←
+                    </button>
+
+                    <div>
+
+                        <h2>
+                            Referral
+                        </h2>
+
+                        <p>
+                            Alika marafiki kwenye RoomRent
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="referral-card">
+
+                    <p>
+                        Referral Code yako
+                    </p>
+
+                    <strong
+                        id="userReferralCode"
+                    >
+                        -
+                    </strong>
+
+                    <p>
+                        Referral Link
+                    </p>
+
+                    <div class="referral-link-row">
+
+                        <input
+                            type="text"
+                            id="userReferralLink"
+                            readonly
+                        >
+
+                        <button
+                            type="button"
+                            id="copyReferralButton"
+                            class="small-button"
+                        >
+                            Copy
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 NOTIFICATIONS
+            ================================================== -->
+
+            <section
+                id="notificationsSection"
+                class="app-section"
+                style="display: none;"
+            >
+
+                <div class="section-header">
+
+                    <button
+                        type="button"
+                        id="notificationsBackButton"
+                        class="back-button"
+                    >
+                        ←
+                    </button>
+
+                    <div>
+
+                        <h2>
+                            Taarifa
+                        </h2>
+
+                        <p>
+                            Notifications zako
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="notificationsList"
+                    class="notifications-list"
+                ></div>
+
+            </section>
+
+
+            <!-- =================================================
+                 TRANSACTIONS
+            ================================================== -->
+
+            <section
+                id="transactionsSection"
+                class="app-section"
+                style="display: none;"
+            >
+
+                <div class="section-header">
+
+                    <button
+                        type="button"
+                        id="transactionsBackButton"
+                        class="back-button"
+                    >
+                        ←
+                    </button>
+
+                    <div>
+
+                        <h2>
+                            Transactions
+                        </h2>
+
+                        <p>
+                            Historia ya miamala
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="transactionsList"
+                    class="transactions-list"
+                ></div>
+
+            </section>
+
+
+            <!-- =================================================
+                 ACCOUNT
+            ================================================== -->
+
+            <section
+                id="accountSection"
+                class="app-section"
+                style="display: none;"
+            >
+
+                <div class="section-header">
+
+                    <button
+                        type="button"
+                        id="accountBackButton"
+                        class="back-button"
+                    >
+                        ←
+                    </button>
+
+                    <div>
+
+                        <h2>
+                            Akaunti
+                        </h2>
+
+                        <p>
+                            Taarifa za akaunti yako
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="profile-card">
+
+                    <div class="profile-row">
+
+                        <span>
+                            Jina
+                        </span>
+
+                        <strong id="profileName">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div class="profile-row">
+
+                        <span>
+                            Email
+                        </span>
+
+                        <strong id="profileEmail">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div class="profile-row">
+
+                        <span>
+                            Simu
+                        </span>
+
+                        <strong id="profilePhone">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div class="profile-row">
+
+                        <span>
+                            Referral Code
+                        </span>
+
+                        <strong id="profileReferralCode">
+                            -
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 ADMIN
+            ================================================== -->
+
+            <section
+                id="adminSection"
+                class="app-section"
+                style="display: none;"
+            >
+
+                <div class="section-header">
+
+                    <div>
+
+                        <h2>
+                            Admin Panel
+                        </h2>
+
+                        <p>
+                            Usimamizi wa RoomRent
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="adminContent"
+                    class="admin-content"
+                >
+
+                    <div class="info-card">
+
+                        <h3>
+                            Room Management
+                        </h3>
+
+                        <p>
+                            Admin ataweza kusimamia rooms,
+                            bei, picha na taarifa za bookings.
+                        </p>
+
+                    </div>
+
+
+                    <div class="info-card">
+
+                        <h3>
+                            Payment Management
+                        </h3>
+
+                        <p>
+                            Admin ataweza kuthibitisha
+                            malipo ya customers.
+                        </p>
+
+                    </div>
+
+
+                    <div class="info-card">
+
+                        <h3>
+                            Withdrawal Management
+                        </h3>
+
+                        <p>
+                            Admin ataweza kusimamia
+                            withdrawal requests.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+
+        <!-- =================================================
+             BOTTOM NAVIGATION
+        ================================================== -->
+
+        <nav
+            id="bottomNavigation"
+            class="bottom-navigation"
+        >
+
+            <button
+                type="button"
+                id="homeNavButton"
+                class="nav-button active"
+            >
+
+                <span>
+                    🏠
+                </span>
+
+                <small>
+                    Home
+                </small>
+
+            </button>
+
+
+            <button
+                type="button"
+                id="roomsNavButton"
+                class="nav-button"
+            >
+
+                <span>
+                    🛏️
+                </span>
+
+                <small>
+                    Rooms
+                </small>
+
+            </button>
+
+
+            <button
+                type="button"
+                id="bookingsNavButton"
+                class="nav-button"
+            >
+
+                <span>
+                    📋
+                </span>
+
+                <small>
+                    Bookings
+                </small>
+
+            </button>
+
+
+            <button
+                type="button"
+                id="accountNavButton"
+                class="nav-button"
+            >
+
+                <span>
+                    👤
+                </span>
+
+                <small>
+                    Account
+                </small>
+
+            </button>
+
+
+            <button
+                type="button"
+                id="moreNavButton"
+                class="nav-button"
+            >
+
+                <span>
+                    ☰
+                </span>
+
+                <small>
+                    More
+                </small>
+
+            </button>
+
+        </nav>
+
+    </main>
+
+
+    <!-- =====================================================
+         FIREBASE COMPAT SDK
+    ====================================================== -->
+
+    <script
+        src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"
+    ></script>
+
+    <script
+        src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"
+    ></script>
+
+    <script
+        src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"
+    ></script>
+
+    <script
+        src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"
+    ></script>
+
+
+    <!-- =====================================================
+         ROOMRENT JAVASCRIPT
+    ====================================================== -->
+
+    <script
+        src="script.js"
+        defer
+    ></script>
+
+</body>
+  </html>
