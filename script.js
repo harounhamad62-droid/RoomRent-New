@@ -66,7 +66,7 @@ const ADMIN_UID =
 
 /* =========================================================
    4. BASIC DOM HELPERS
-   ========================================================= */
+========================================================= */
 
 function getElement(id) {
 
@@ -81,6 +81,12 @@ function showElement(element) {
 
     element.classList.remove("hidden");
 
+    /*
+     * Ondoa display:none iliyowekwa moja kwa moja
+     * kwenye HTML.
+     */
+    element.style.removeProperty("display");
+
 }
 
 
@@ -90,6 +96,8 @@ function hideElement(element) {
 
     element.classList.add("hidden");
 
+    element.style.display = "none";
+
 }
 
 
@@ -98,7 +106,9 @@ function showById(id) {
     const element = getElement(id);
 
     if (element) {
+
         showElement(element);
+
     }
 
 }
@@ -109,7 +119,9 @@ function hideById(id) {
     const element = getElement(id);
 
     if (element) {
+
         hideElement(element);
+
     }
 
 }
@@ -126,7 +138,7 @@ function setMessage(id, message, type = "info") {
     element.className =
         "form-message " + type;
 
-}
+       }
 
 
 /* =========================================================
@@ -1688,7 +1700,7 @@ function bindEvents() {
 
 /* =========================================================
    22. INITIALIZATION
-   ========================================================= */
+========================================================= */
 
 function initializeRoomRent() {
 
@@ -1696,15 +1708,16 @@ function initializeRoomRent() {
         "RoomRent: initialization inaanza..."
     );
 
-    /*
-     * Washa event listeners za login,
-     * register, forgot password na buttons.
-     */
-
     bindEvents();
 
     console.log(
         "RoomRent: events zimeunganishwa."
+    );
+
+    initializeAuthListener();
+
+    console.log(
+        "RoomRent: Auth listener imewashwa."
     );
 
     console.log(
