@@ -2491,7 +2491,7 @@ function openBookingConfirmation(selectedRoom) {
 
 
 /* =========================================================
-   25C. BOOKING CONFIRMATION HANDLER
+   25C. PAYMENT METHOD SELECTION
 ========================================================= */
 
 function handleBookingConfirmation(selectedRoom) {
@@ -2505,34 +2505,621 @@ function handleBookingConfirmation(selectedRoom) {
         return;
     }
 
+    if (!selectedRoom) {
+
+        return;
+    }
+
+    console.log(
+        "RoomRent: Payment method selection:",
+        selectedRoom.roomNumber
+    );
+
+    const bookingContent =
+        getElement("bookingContent");
+
+    if (!bookingContent) {
+
+        console.error(
+            "RoomRent: bookingContent haipo."
+        );
+
+        return;
+    }
+
+    const dailyProfit =
+        selectedRoom.price *
+        ROOM_PROFIT_RATE_PER_DAY;
+
+    const totalEstimatedProfit =
+        dailyProfit *
+        ROOM_DURATION_DAYS;
+
+    bookingContent.innerHTML = `
+
+        <div class="booking-card">
+
+            <h2>
+                💳 Chagua Njia ya Malipo
+            </h2>
+
+            <div class="booking-detail">
+
+                <span>
+                    Chumba
+                </span>
+
+                <strong>
+                    ${selectedRoom.roomNumber}
+                </strong>
+
+            </div>
+
+            <div class="booking-detail">
+
+                <span>
+                    Kiasi cha kulipa
+                </span>
+
+                <strong>
+                    ${formatMoney(selectedRoom.price)}
+                </strong>
+
+            </div>
+
+            <div class="booking-detail">
+
+                <span>
+                    Muda wa uwekezaji
+                </span>
+
+                <strong>
+                    ${ROOM_DURATION_DAYS} siku
+                </strong>
+
+            </div>
+
+            <div class="booking-detail">
+
+                <span>
+                    Faida inayokadiriwa kwa siku
+                </span>
+
+                <strong>
+                    ${formatMoney(dailyProfit)}
+                </strong>
+
+            </div>
+
+            <div class="booking-detail">
+
+                <span>
+                    Faida inayokadiriwa kwa kipindi
+                </span>
+
+                <strong>
+                    ${formatMoney(totalEstimatedProfit)}
+                </strong>
+
+            </div>
+
+
+            <div class="payment-methods">
+
+                <h3>
+                    Chagua njia ya malipo
+                </h3>
+
+
+                <button
+                    type="button"
+                    class="primary-button payment-method-button"
+                    id="mixxPaymentButton"
+                >
+
+                    💳 MIXX BY YAS
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="primary-button payment-method-button"
+                    id="airtelPaymentButton"
+                >
+
+                    📱 Airtel Money
+
+                </button>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="secondary-button"
+                id="backToBookingConfirmationButton"
+            >
+
+                Rudi
+
+            </button>
+
+        </div>
+
+    `;
+
+
+    /* =====================================================
+       MIXX BY YAS
+    ===================================================== */
+
+    const mixxButton =
+        getElement(
+            "mixxPaymentButton"
+        );
+
+    if (mixxButton) {
+
+        mixxButton.addEventListener(
+
+            "click",
+
+            function() {
+
+                showPaymentDetails(
+                    selectedRoom,
+                    "MIXX BY YAS"
+                );
+
+            }
+
+        );
+
+    }
+
+
+    /* =====================================================
+       AIRTEL MONEY
+    ===================================================== */
+
+    const airtelButton =
+        getElement(
+            "airtelPaymentButton"
+        );
+
+    if (airtelButton) {
+
+        airtelButton.addEventListener(
+
+            "click",
+
+            function() {
+
+                showPaymentDetails(
+                    selectedRoom,
+                    "Airtel Money"
+                );
+
+            }
+
+        );
+
+    }
+
+
+    /* =====================================================
+       RUDI KWENYE CONFIRMATION
+    ===================================================== */
+
+    const backButton =
+        getElement(
+            "backToBookingConfirmationButton"
+        );
+
+    if (backButton) {
+
+        backButton.addEventListener(
+
+            "click",
+
+            function() {
+
+                openBookingConfirmation(
+                    selectedRoom
+                );
+
+            }
+
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   25D. PAYMENT DETAILS
+========================================================= */
+
+function showPaymentDetails(
+    selectedRoom,
+    paymentMethod
+) {
 
     if (!selectedRoom) {
 
         return;
     }
 
+    const bookingContent =
+        getElement("bookingContent");
 
-    console.log(
-        "RoomRent: Booking confirmation:",
-        selectedRoom.roomNumber
-    );
+    if (!bookingContent) {
+
+        return;
+    }
 
 
-    /*
-     * HATUA HII KWA SASA HAITENGENEZI
-     * BOOKING YA KWELI FIRESTORE.
-     *
-     * Tutaiunganisha na mfumo wa Firestore
-     * kwenye hatua inayofuata baada ya
-     * kujaribu UI hii.
-     */
+    let paymentName = "";
+    let paymentPhone = "";
 
-    alert(
-        "Muhtasari wa booking umethibitishwa. Hatua ya kuhifadhi booking kwenye Firestore itaongezwa kwenye hatua inayofuata."
-    );
 
-       }
+    if (paymentMethod === "MIXX BY YAS") {
 
+        paymentName =
+            "HARUNA ISSA HAMAD";
+
+        paymentPhone =
+            "0651590936";
+
+    }
+
+
+    else if (paymentMethod === "Airtel Money") {
+
+        paymentName =
+            "HARUNA ISSA HAMAD";
+
+        paymentPhone =
+            "0667872515";
+
+    }
+
+
+    bookingContent.innerHTML = `
+
+        <div class="booking-card">
+
+            <h2>
+                💳 ${paymentMethod}
+            </h2>
+
+
+            <div class="booking-detail">
+
+                <span>
+                    Chumba
+                </span>
+
+                <strong>
+                    ${selectedRoom.roomNumber}
+                </strong>
+
+            </div>
+
+
+            <div class="booking-detail">
+
+                <span>
+                    Kiasi cha kulipa
+                </span>
+
+                <strong>
+                    ${formatMoney(
+                        selectedRoom.price
+                    )}
+                </strong>
+
+            </div>
+
+
+            <div class="booking-detail">
+
+                <span>
+                    Jina la kupokea
+                </span>
+
+                <strong>
+                    ${paymentName}
+                </strong>
+
+            </div>
+
+
+            <div class="booking-detail">
+
+                <span>
+                    Namba ya malipo
+                </span>
+
+                <strong>
+                    ${paymentPhone}
+                </strong>
+
+            </div>
+
+
+            <div class="booking-notice">
+
+                <p>
+                    1. Tuma ${formatMoney(
+                        selectedRoom.price
+                    )} kupitia ${paymentMethod}.
+                </p>
+
+                <p>
+                    2. Hakikisha jina na namba ya
+                    mpokeaji ni sahihi kabla ya kutuma.
+                </p>
+
+                <p>
+                    3. Baada ya malipo, utawasilisha
+                    uthibitisho wa malipo.
+                </p>
+
+                <p>
+                    4. Booking haitakuwa active mpaka
+                    malipo yatakapothibitishwa na admin.
+                </p>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="primary-button"
+                id="paymentMadeButton"
+            >
+
+                Nimeshafanya Malipo
+
+            </button>
+
+
+            <button
+                type="button"
+                class="secondary-button"
+                id="backToPaymentMethodsButton"
+            >
+
+                Chagua Njia Nyingine
+
+            </button>
+
+        </div>
+
+    `;
+
+
+    const paymentMadeButton =
+        getElement(
+            "paymentMadeButton"
+        );
+
+
+    if (paymentMadeButton) {
+
+        paymentMadeButton.addEventListener(
+
+            "click",
+
+            function() {
+
+                showPaymentSubmission(
+                    selectedRoom,
+                    paymentMethod
+                );
+
+            }
+
+        );
+
+    }
+
+
+    const backButton =
+        getElement(
+            "backToPaymentMethodsButton"
+        );
+
+
+    if (backButton) {
+
+        backButton.addEventListener(
+
+            "click",
+
+            function() {
+
+                handleBookingConfirmation(
+                    selectedRoom
+                );
+
+            }
+
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   25E. PAYMENT SUBMISSION
+========================================================= */
+
+function showPaymentSubmission(
+    selectedRoom,
+    paymentMethod
+) {
+
+    const bookingContent =
+        getElement("bookingContent");
+
+    if (!bookingContent) {
+
+        return;
+    }
+
+
+    bookingContent.innerHTML = `
+
+        <div class="booking-card">
+
+            <h2>
+                📋 Uthibitisho wa Malipo
+            </h2>
+
+
+            <div class="booking-detail">
+
+                <span>
+                    Chumba
+                </span>
+
+                <strong>
+                    ${selectedRoom.roomNumber}
+                </strong>
+
+            </div>
+
+
+            <div class="booking-detail">
+
+                <span>
+                    Njia ya malipo
+                </span>
+
+                <strong>
+                    ${paymentMethod}
+                </strong>
+
+            </div>
+
+
+            <div class="booking-detail">
+
+                <span>
+                    Kiasi
+                </span>
+
+                <strong>
+                    ${formatMoney(
+                        selectedRoom.price
+                    )}
+                </strong>
+
+            </div>
+
+
+            <div class="booking-notice">
+
+                <p>
+                    Umechagua ${paymentMethod}.
+                </p>
+
+                <p>
+                    Hatua hii itahifadhi taarifa za
+                    booking na kuifanya iwe
+                    <strong>Pending Payment Verification</strong>.
+                </p>
+
+                <p>
+                    Admin atakagua na kuthibitisha
+                    malipo kabla booking kuanza.
+                </p>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="primary-button"
+                id="submitPaymentProofButton"
+            >
+
+                Wasilisha Uthibitisho wa Malipo
+
+            </button>
+
+
+            <button
+                type="button"
+                class="secondary-button"
+                id="backToPaymentDetailsButton"
+            >
+
+                Rudi
+
+            </button>
+
+        </div>
+
+    `;
+
+
+    const backButton =
+        getElement(
+            "backToPaymentDetailsButton"
+        );
+
+
+    if (backButton) {
+
+        backButton.addEventListener(
+
+            "click",
+
+            function() {
+
+                showPaymentDetails(
+                    selectedRoom,
+                    paymentMethod
+                );
+
+            }
+
+        );
+
+    }
+
+
+    const submitButton =
+        getElement(
+            "submitPaymentProofButton"
+        );
+
+
+    if (submitButton) {
+
+        submitButton.addEventListener(
+
+            "click",
+
+            function() {
+
+                alert(
+                    "Hatua ya kuhifadhi booking na uthibitisho wa malipo kwenye Firestore itaongezwa kwenye hatua inayofuata."
+                );
+
+            }
+
+        );
+
+    }
+
+}
 
 
 /* =========================================================
