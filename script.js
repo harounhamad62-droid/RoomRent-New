@@ -1263,32 +1263,33 @@ function loadReferralFromURL() {
 /* =========================================================
    20. AUTH STATE LISTENER
    ========================================================= */
-
 function initializeAuthListener() {
 
     if (!auth) {
-
         console.error(
-            "Auth listener haikuanzishwa kwa sababu Firebase Auth haipo."
+            "RoomRent: Firebase Auth haipo."
         );
+
+        showAuthScreen();
+        showLoginPanel();
 
         return;
     }
 
+    auth.onAuthStateChanged(async function (user) {
 
-    auth.onAuthStateChanged(
-        async function (user) {
+        console.log(
+            "RoomRent Auth State:",
+            user ? "LOGGED IN" : "LOGGED OUT"
+        );
 
-            if (user) {
+        if (user) {
 
-                currentUser =
-                    user;
+            currentUser = user;
 
+            try {
 
-                await loadCurrentUserData(
-                    user
-                );
-
+                await loadCurrentUserData(user);
 
                 showAppScreen();
 
@@ -1296,26 +1297,46 @@ function initializeAuthListener() {
                     "dashboardSection"
                 );
 
-
                 loadUserDashboard();
 
+            } catch (error) {
 
-            } else {
+                console.error(
+                    "RoomRent: User loading error:",
+                    error
+                );
 
-                currentUser = null;
+                /*
+                 * Hata kwenye Firestore isizime
+                 * au kufanya ukurasa uwe mtupu.
+                 */
 
-                currentUserData = null;
+                showAppScreen();
 
-                showAuthScreen();
-
-                showLoginPanel();
+                showSection(
+                    "dashboardSection"
+                );
 
             }
 
-        }
-    );
+        } else {
 
-}
+            currentUser = null;
+            currentUserData = null;
+
+            /*
+             * User akiwa haja-login,
+             * login screen lazima ibaki wazi.
+             */
+
+            showAuthScreen();
+            showLoginPanel();
+
+        }
+
+    });
+
+   }
 
 
 /* =========================================================
