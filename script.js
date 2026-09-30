@@ -1692,25 +1692,29 @@ function initializeRoomRent() {
 
 }
 
-
 /* =========================================================
    23. START AFTER DOM IS READY
    ========================================================= */
 
-if (
-    document.readyState ===
-    "loading"
-) {
+console.log("ROOMRENT SCRIPT IMELOADED");
+
+if (document.readyState === "loading") {
 
     document.addEventListener(
         "DOMContentLoaded",
-        initializeRoomRent,
-        {
-            once: true
-        }
+        function () {
+
+            console.log("ROOMRENT DOM READY");
+
+            initializeRoomRent();
+
+        },
+        { once: true }
     );
 
 } else {
+
+    console.log("ROOMRENT DOM ALREADY READY");
 
     initializeRoomRent();
 
