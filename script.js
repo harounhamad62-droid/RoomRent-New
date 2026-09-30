@@ -2139,94 +2139,58 @@ function openRoomsSection() {
    25. OPEN BOOKING SECTION
 ========================================================= */
 
-function openBookingSection(
-    roomNumber
-) {
+function openBookingSection(roomNumber) {
 
     console.log(
-
         "RoomRent: Chumba kilichochaguliwa:",
-
         roomNumber
-
     );
 
-
-    const selectedRoom =
-        ROOM_DATA.find(
-            function(room) {
-
-                return (
-
-                    String(
-                        room.roomNumber
-                    ) ===
-
-                    String(
-                        roomNumber
-                    )
-
-                );
-
-            }
-        );
-
+    const selectedRoom = ROOM_DATA.find(
+        function(room) {
+            return String(room.roomNumber) === String(roomNumber);
+        }
+    );
 
     if (!selectedRoom) {
 
         console.error(
-
             "RoomRent: Chumba hakijapatikana:",
-
             roomNumber
-
         );
 
         return;
-
     }
 
-
-    showSection(
-        "bookingSection"
-    );
-
+    showSection("bookingSection");
 
     const bookingContent =
-        getElement(
-            "bookingContent"
-        );
-
+        getElement("bookingContent");
 
     if (!bookingContent) {
 
         console.error(
-
             "RoomRent: bookingContent haipo."
-
         );
 
         return;
-
     }
-
 
     const dailyProfit =
         selectedRoom.price *
         ROOM_PROFIT_RATE_PER_DAY;
 
+    const totalEstimatedProfit =
+        dailyProfit *
+        ROOM_DURATION_DAYS;
 
     bookingContent.innerHTML = `
 
         <div class="booking-card">
 
             <h2>
-
-                🏠 Chumba
-                ${selectedRoom.roomNumber}
-
+                🏠 Chumba ${selectedRoom.roomNumber}
             </h2>
-
 
             <div class="booking-detail">
 
@@ -2235,11 +2199,7 @@ function openBookingSection(
                 </span>
 
                 <strong>
-
-                    ${formatMoney(
-                        selectedRoom.price
-                    )}
-
+                    ${formatMoney(selectedRoom.price)}
                 </strong>
 
             </div>
@@ -2248,15 +2208,11 @@ function openBookingSection(
             <div class="booking-detail">
 
                 <span>
-                    Faida kwa siku
+                    Faida inayokadiriwa kwa siku
                 </span>
 
                 <strong>
-
-                    ${formatMoney(
-                        dailyProfit
-                    )}
-
+                    ${formatMoney(dailyProfit)}
                 </strong>
 
             </div>
@@ -2269,10 +2225,7 @@ function openBookingSection(
                 </span>
 
                 <strong>
-
-                    ${ROOM_DURATION_DAYS}
-                    siku
-
+                    ${ROOM_DURATION_DAYS} siku
                 </strong>
 
             </div>
@@ -2281,33 +2234,52 @@ function openBookingSection(
             <div class="booking-detail">
 
                 <span>
-                    Idadi ya bookings zako
+                    Faida inayokadiriwa kwa siku 90
                 </span>
 
                 <strong>
-
-                    Hadi
-                    ${selectedRoom.maxBookingsPerUser}
-
+                    ${formatMoney(totalEstimatedProfit)}
                 </strong>
 
             </div>
 
 
+            <div class="booking-detail">
+
+                <span>
+                    Kikomo cha bookings zako
+                </span>
+
+                <strong>
+                    Hadi ${selectedRoom.maxBookingsPerUser}
+                </strong>
+
+            </div>
+
+
+            <div class="booking-notice">
+
+                <p>
+                    ℹ️ Faida itaendelea kuhesabiwa
+                    kulingana na mfumo wa RoomRent
+                    baada ya booking kuthibitishwa.
+                </p>
+
+                <p>
+                    Makadirio haya hayamaanishi kuwa
+                    faida yote inalipwa mara moja.
+                </p>
+
+            </div>
+
+
             <button
-
                 type="button"
-
                 class="primary-button"
-
                 id="continueBookingButton"
-
                 data-room-number="${selectedRoom.roomNumber}"
-
             >
-
                 Endelea
-
             </button>
 
         </div>
@@ -2316,10 +2288,7 @@ function openBookingSection(
 
 
     const continueButton =
-        getElement(
-            "continueBookingButton"
-        );
-
+        getElement("continueBookingButton");
 
     if (continueButton) {
 
@@ -2329,19 +2298,8 @@ function openBookingSection(
 
             function() {
 
-                console.log(
-
-                    "RoomRent: Continue booking:",
-
-                    selectedRoom.roomNumber
-
-                );
-
-
-                alert(
-
-                    "Booking itaendelea kwenye hatua inayofuata."
-
+                openBookingConfirmation(
+                    selectedRoom
                 );
 
             }
@@ -2351,6 +2309,230 @@ function openBookingSection(
     }
 
 }
+
+
+/* =========================================================
+   25B. BOOKING CONFIRMATION
+========================================================= */
+
+function openBookingConfirmation(selectedRoom) {
+
+    if (!selectedRoom) {
+        return;
+    }
+
+    const bookingContent =
+        getElement("bookingContent");
+
+    if (!bookingContent) {
+        return;
+    }
+
+    const dailyProfit =
+        selectedRoom.price *
+        ROOM_PROFIT_RATE_PER_DAY;
+
+    const totalEstimatedProfit =
+        dailyProfit *
+        ROOM_DURATION_DAYS;
+
+
+    bookingContent.innerHTML = `
+
+        <div class="booking-card">
+
+            <h2>
+                🔐 Thibitisha Booking
+            </h2>
+
+
+            <div class="booking-detail">
+
+                <span>
+                    Chumba
+                </span>
+
+                <strong>
+                    ${selectedRoom.roomNumber}
+                </strong>
+
+            </div>
+
+
+            <div class="booking-detail">
+
+                <span>
+                    Bei
+                </span>
+
+                <strong>
+                    ${formatMoney(selectedRoom.price)}
+                </strong>
+
+            </div>
+
+
+            <div class="booking-detail">
+
+                <span>
+                    Muda
+                </span>
+
+                <strong>
+                    ${ROOM_DURATION_DAYS} siku
+                </strong>
+
+            </div>
+
+
+            <div class="booking-detail">
+
+                <span>
+                    Faida inayokadiriwa kwa siku
+                </span>
+
+                <strong>
+                    ${formatMoney(dailyProfit)}
+                </strong>
+
+            </div>
+
+
+            <div class="booking-detail">
+
+                <span>
+                    Faida inayokadiriwa kwa kipindi
+                </span>
+
+                <strong>
+                    ${formatMoney(totalEstimatedProfit)}
+                </strong>
+
+            </div>
+
+
+            <div class="booking-notice">
+
+                <p>
+                    Tafadhali hakikisha taarifa za
+                    chumba na bei kabla ya kuendelea.
+                </p>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="primary-button"
+                id="confirmBookingButton"
+                data-room-number="${selectedRoom.roomNumber}"
+            >
+                Thibitisha Booking
+            </button>
+
+
+            <button
+                type="button"
+                class="secondary-button"
+                id="cancelBookingButton"
+            >
+                Rudi
+            </button>
+
+        </div>
+
+    `;
+
+
+    const cancelButton =
+        getElement("cancelBookingButton");
+
+    if (cancelButton) {
+
+        cancelButton.addEventListener(
+
+            "click",
+
+            function() {
+
+                openBookingSection(
+                    selectedRoom.roomNumber
+                );
+
+            }
+
+        );
+
+    }
+
+
+    const confirmButton =
+        getElement("confirmBookingButton");
+
+    if (confirmButton) {
+
+        confirmButton.addEventListener(
+
+            "click",
+
+            function() {
+
+                handleBookingConfirmation(
+                    selectedRoom
+                );
+
+            }
+
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   25C. BOOKING CONFIRMATION HANDLER
+========================================================= */
+
+function handleBookingConfirmation(selectedRoom) {
+
+    if (!currentUser) {
+
+        alert(
+            "Tafadhali ingia kwenye akaunti yako kwanza."
+        );
+
+        return;
+    }
+
+
+    if (!selectedRoom) {
+
+        return;
+    }
+
+
+    console.log(
+        "RoomRent: Booking confirmation:",
+        selectedRoom.roomNumber
+    );
+
+
+    /*
+     * HATUA HII KWA SASA HAITENGENEZI
+     * BOOKING YA KWELI FIRESTORE.
+     *
+     * Tutaiunganisha na mfumo wa Firestore
+     * kwenye hatua inayofuata baada ya
+     * kujaribu UI hii.
+     */
+
+    alert(
+        "Muhtasari wa booking umethibitishwa. Hatua ya kuhifadhi booking kwenye Firestore itaongezwa kwenye hatua inayofuata."
+    );
+
+       }
+
 
 
 /* =========================================================
