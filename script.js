@@ -1690,28 +1690,30 @@ function bindEvents() {
 /* =========================================================
    22. INITIALIZATION
    ========================================================= */
-
 function initializeRoomRent() {
 
     console.log(
         "RoomRent: initialization inaanza..."
     );
 
-
     loadReferralFromURL();
-
 
     bindEvents();
 
+    /*
+     * TEMPORARILY DISABLED FOR TESTING
+     *
+     * Tunazima Firebase Auth listener kwa muda
+     * ili kujua kama ndiyo inayofanya screen kuwa nyeupe.
+     */
 
-    initializeAuthListener();
-
+    // initializeAuthListener();
 
     console.log(
         "RoomRent: initialization imekamilika."
     );
-
 }
+
 
 /* =========================================================
    23. START AFTER DOM IS READY
