@@ -1834,21 +1834,22 @@ if (document.readyState === "loading") {
 
                         }
 
+
 /* =========================================================
    SECTION 2B — ROOMS DISPLAY
 ========================================================= */
 
 function loadRooms() {
 
-    const roomsList = document.getElementById("roomsList");
+    const roomsList = getElement("roomsList");
 
     if (!roomsList) {
         console.error("RoomRent: roomsList haipo.");
         return;
     }
 
-    if (typeof rooms === "undefined" || !Array.isArray(rooms)) {
-        console.error("RoomRent: rooms configuration haipo.");
+    if (!Array.isArray(ROOM_DATA)) {
+        console.error("RoomRent: ROOM_DATA haipo.");
         roomsList.innerHTML = `
             <div class="empty-state">
                 <p>Vyumba havijapatikana.</p>
@@ -1859,45 +1860,49 @@ function loadRooms() {
 
     roomsList.innerHTML = "";
 
-    rooms.forEach(function(room) {
+    ROOM_DATA.forEach(function(room) {
 
-        const roomCard = document.createElement("div");
+        const dailyProfit =
+            room.price * ROOM_PROFIT_RATE_PER_DAY;
+
+        const roomCard =
+            document.createElement("div");
 
         roomCard.className = "room-card";
-
-        const dailyProfit = room.price * 0.04;
 
         roomCard.innerHTML = `
             <div class="room-card-content">
 
                 <div class="room-number">
-                    Chumba ${room.id}
+                    Chumba ${room.roomNumber}
                 </div>
 
                 <div class="room-price">
-                    TSh ${formatMoney(room.price)}
+                    ${formatMoney(room.price)}
                 </div>
 
                 <div class="room-info">
+
                     <div>
                         <span>Faida kwa siku</span>
                         <strong>
-                            TSh ${formatMoney(dailyProfit)}
+                            ${formatMoney(dailyProfit)}
                         </strong>
                     </div>
 
                     <div>
                         <span>Muda wa uwekezaji</span>
                         <strong>
-                            ${room.durationDays} siku
+                            ${ROOM_DURATION_DAYS} siku
                         </strong>
                     </div>
+
                 </div>
 
                 <button
                     type="button"
                     class="primary-button rent-room-button"
-                    data-room-id="${room.id}">
+                    data-room-number="${room.roomNumber}">
                     Kodisha Chumba
                 </button>
 
@@ -1905,26 +1910,39 @@ function loadRooms() {
         `;
 
         roomsList.appendChild(roomCard);
+
     });
 
+
     const rentButtons =
-        document.querySelectorAll(".rent-room-button");
+        document.querySelectorAll(
+            ".rent-room-button"
+        );
+
 
     rentButtons.forEach(function(button) {
 
-        button.addEventListener("click", function() {
+        button.addEventListener(
+            "click",
+            function() {
 
-            const roomId = button.dataset.roomId;
+                const roomNumber =
+                    button.dataset.roomNumber;
 
-            openBookingSection(roomId);
+                openBookingSection(roomNumber);
 
-        });
+            }
+        );
 
     });
 
+
     console.log(
-        "RoomRent: Vyumba ${rooms.length} vimeonyeshwa."
+        "RoomRent: Vyumba " +
+        ROOM_DATA.length +
+        " vimeonyeshwa."
     );
+
 }
 
 
@@ -1932,83 +1950,129 @@ function loadRooms() {
    OPEN BOOKING SECTION
 ========================================================= */
 
-function openBookingSection(roomId) {
+function openBookingSection(roomNumber) {
 
     console.log(
         "RoomRent: Chumba kilichochaguliwa:",
-        roomId
+        roomNumber
     );
 
-    showSection("bookingSection");
-
-    const bookingContent =
-        document.getElementById("bookingContent");
-
-    if (!bookingContent) {
-        console.error("RoomRent: bookingContent haipo.");
-        return;
-    }
 
     const selectedRoom =
-        rooms.find(function(room) {
-            return String(room.id) === String(roomId);
+        ROOM_DATA.find(function(room) {
+
+            return String(room.roomNumber) ===
+                   String(roomNumber);
+
         });
+
 
     if (!selectedRoom) {
 
-        bookingContent.innerHTML = `
-            <div class="empty-state">
-                <p>Chumba hakijapatikana.</p>
-            </div>
-        `;
+        console.error(
+            "RoomRent: Chumba hakijapatikana:",
+            roomNumber
+        );
 
         return;
+
     }
 
+
+    showSection("bookingSection");
+
+
+    const bookingContent =
+        getElement("bookingContent");
+
+
+    if (!bookingContent) {
+
+        console.error(
+            "RoomRent: bookingContent haipo."
+        );
+
+        return;
+
+    }
+
+
     const dailyProfit =
-        selectedRoom.price * 0.04;
+        selectedRoom.price *
+        ROOM_PROFIT_RATE_PER_DAY;
+
 
     bookingContent.innerHTML = `
+
         <div class="booking-card">
 
             <h2>
-                Chumba ${selectedRoom.id}
+                Chumba ${selectedRoom.roomNumber}
             </h2>
 
+
             <div class="booking-detail">
+
                 <span>Bei ya chumba</span>
+
                 <strong>
-                    TSh ${formatMoney(selectedRoom.price)}
+                    ${formatMoney(selectedRoom.price)}
                 </strong>
+
             </div>
 
+
             <div class="booking-detail">
+
                 <span>Faida kwa siku</span>
+
                 <strong>
-                    TSh ${formatMoney(dailyProfit)}
+                    ${formatMoney(dailyProfit)}
                 </strong>
+
             </div>
 
+
             <div class="booking-detail">
-                <span>Muda</span>
+
+                <span>Muda wa uwekezaji</span>
+
                 <strong>
-                    ${selectedRoom.durationDays} siku
+                    ${ROOM_DURATION_DAYS} siku
                 </strong>
+
             </div>
+
+
+            <div class="booking-detail">
+
+                <span>Idadi ya bookings zako</span>
+
+                <strong>
+                    Hadi ${selectedRoom.maxBookingsPerUser}
+                </strong>
+
+            </div>
+
 
             <button
                 type="button"
                 class="primary-button"
                 id="continueBookingButton"
-                data-room-id="${selectedRoom.id}">
+                data-room-number="${selectedRoom.roomNumber}">
+
                 Endelea
+
             </button>
 
         </div>
+
     `;
 
+
     const continueButton =
-        document.getElementById("continueBookingButton");
+        getElement("continueBookingButton");
+
 
     if (continueButton) {
 
@@ -2018,22 +2082,23 @@ function openBookingSection(roomId) {
 
                 console.log(
                     "RoomRent: Continue booking:",
-                    selectedRoom.id
+                    selectedRoom.roomNumber
                 );
 
                 alert(
-                    "Mfumo wa booking utaendelea kwenye Section inayofuata."
+                    "Booking itaendelea kwenye hatua inayofuata."
                 );
 
             }
         );
 
     }
+
 }
 
 
 /* =========================================================
-   LOAD ROOMS WHEN ROOMS SECTION OPENS
+   OPEN ROOMS SECTION
 ========================================================= */
 
 function openRoomsSection() {
@@ -2046,40 +2111,16 @@ function openRoomsSection() {
 
 
 /* =========================================================
-   UPDATE ROOM BUTTON
+   INITIALIZE ROOMS SECTION
 ========================================================= */
 
 function initializeRoomsSection() {
-
-    const viewRoomsButton =
-        document.getElementById("viewRoomsButton");
-
-    const roomsNavButton =
-        document.getElementById("roomsNavButton");
-
-    if (viewRoomsButton) {
-
-        viewRoomsButton.onclick = function() {
-
-            openRoomsSection();
-
-        };
-
-    }
-
-    if (roomsNavButton) {
-
-        roomsNavButton.onclick = function() {
-
-            openRoomsSection();
-
-        };
-
-    }
 
     console.log(
         "RoomRent: Rooms section imeandaliwa."
     );
 
-           }
+}
+
+
 
