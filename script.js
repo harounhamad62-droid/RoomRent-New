@@ -1697,9 +1697,15 @@ function initializeRoomRent() {
     );
 
     /*
-     * Kwa test hii tunafanya initialization iwe tupu.
-     * Hakuna Auth, Firestore, navigation wala events.
+     * Washa event listeners za login,
+     * register, forgot password na buttons.
      */
+
+    bindEvents();
+
+    console.log(
+        "RoomRent: events zimeunganishwa."
+    );
 
     console.log(
         "RoomRent: initialization imekamilika."
@@ -1743,5 +1749,6 @@ if (document.readyState === "loading") {
 
     initializeRoomRent();
 
-               }
+                        }
+
 
