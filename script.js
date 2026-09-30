@@ -1834,4 +1834,252 @@ if (document.readyState === "loading") {
 
                         }
 
+/* =========================================================
+   SECTION 2B — ROOMS DISPLAY
+========================================================= */
+
+function loadRooms() {
+
+    const roomsList = document.getElementById("roomsList");
+
+    if (!roomsList) {
+        console.error("RoomRent: roomsList haipo.");
+        return;
+    }
+
+    if (typeof rooms === "undefined" || !Array.isArray(rooms)) {
+        console.error("RoomRent: rooms configuration haipo.");
+        roomsList.innerHTML = `
+            <div class="empty-state">
+                <p>Vyumba havijapatikana.</p>
+            </div>
+        `;
+        return;
+    }
+
+    roomsList.innerHTML = "";
+
+    rooms.forEach(function(room) {
+
+        const roomCard = document.createElement("div");
+
+        roomCard.className = "room-card";
+
+        const dailyProfit = room.price * 0.04;
+
+        roomCard.innerHTML = `
+            <div class="room-card-content">
+
+                <div class="room-number">
+                    Chumba ${room.id}
+                </div>
+
+                <div class="room-price">
+                    TSh ${formatMoney(room.price)}
+                </div>
+
+                <div class="room-info">
+                    <div>
+                        <span>Faida kwa siku</span>
+                        <strong>
+                            TSh ${formatMoney(dailyProfit)}
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Muda wa uwekezaji</span>
+                        <strong>
+                            ${room.durationDays} siku
+                        </strong>
+                    </div>
+                </div>
+
+                <button
+                    type="button"
+                    class="primary-button rent-room-button"
+                    data-room-id="${room.id}">
+                    Kodisha Chumba
+                </button>
+
+            </div>
+        `;
+
+        roomsList.appendChild(roomCard);
+    });
+
+    const rentButtons =
+        document.querySelectorAll(".rent-room-button");
+
+    rentButtons.forEach(function(button) {
+
+        button.addEventListener("click", function() {
+
+            const roomId = button.dataset.roomId;
+
+            openBookingSection(roomId);
+
+        });
+
+    });
+
+    console.log(
+        "RoomRent: Vyumba ${rooms.length} vimeonyeshwa."
+    );
+}
+
+
+/* =========================================================
+   OPEN BOOKING SECTION
+========================================================= */
+
+function openBookingSection(roomId) {
+
+    console.log(
+        "RoomRent: Chumba kilichochaguliwa:",
+        roomId
+    );
+
+    showSection("bookingSection");
+
+    const bookingContent =
+        document.getElementById("bookingContent");
+
+    if (!bookingContent) {
+        console.error("RoomRent: bookingContent haipo.");
+        return;
+    }
+
+    const selectedRoom =
+        rooms.find(function(room) {
+            return String(room.id) === String(roomId);
+        });
+
+    if (!selectedRoom) {
+
+        bookingContent.innerHTML = `
+            <div class="empty-state">
+                <p>Chumba hakijapatikana.</p>
+            </div>
+        `;
+
+        return;
+    }
+
+    const dailyProfit =
+        selectedRoom.price * 0.04;
+
+    bookingContent.innerHTML = `
+        <div class="booking-card">
+
+            <h2>
+                Chumba ${selectedRoom.id}
+            </h2>
+
+            <div class="booking-detail">
+                <span>Bei ya chumba</span>
+                <strong>
+                    TSh ${formatMoney(selectedRoom.price)}
+                </strong>
+            </div>
+
+            <div class="booking-detail">
+                <span>Faida kwa siku</span>
+                <strong>
+                    TSh ${formatMoney(dailyProfit)}
+                </strong>
+            </div>
+
+            <div class="booking-detail">
+                <span>Muda</span>
+                <strong>
+                    ${selectedRoom.durationDays} siku
+                </strong>
+            </div>
+
+            <button
+                type="button"
+                class="primary-button"
+                id="continueBookingButton"
+                data-room-id="${selectedRoom.id}">
+                Endelea
+            </button>
+
+        </div>
+    `;
+
+    const continueButton =
+        document.getElementById("continueBookingButton");
+
+    if (continueButton) {
+
+        continueButton.addEventListener(
+            "click",
+            function() {
+
+                console.log(
+                    "RoomRent: Continue booking:",
+                    selectedRoom.id
+                );
+
+                alert(
+                    "Mfumo wa booking utaendelea kwenye Section inayofuata."
+                );
+
+            }
+        );
+
+    }
+}
+
+
+/* =========================================================
+   LOAD ROOMS WHEN ROOMS SECTION OPENS
+========================================================= */
+
+function openRoomsSection() {
+
+    showSection("roomsSection");
+
+    loadRooms();
+
+}
+
+
+/* =========================================================
+   UPDATE ROOM BUTTON
+========================================================= */
+
+function initializeRoomsSection() {
+
+    const viewRoomsButton =
+        document.getElementById("viewRoomsButton");
+
+    const roomsNavButton =
+        document.getElementById("roomsNavButton");
+
+    if (viewRoomsButton) {
+
+        viewRoomsButton.onclick = function() {
+
+            openRoomsSection();
+
+        };
+
+    }
+
+    if (roomsNavButton) {
+
+        roomsNavButton.onclick = function() {
+
+            openRoomsSection();
+
+        };
+
+    }
+
+    console.log(
+        "RoomRent: Rooms section imeandaliwa."
+    );
+
+           }
 
