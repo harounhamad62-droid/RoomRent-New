@@ -1686,32 +1686,25 @@ function bindEvents() {
 
 }
 
-
 /* =========================================================
    22. INITIALIZATION
    ========================================================= */
+
 function initializeRoomRent() {
 
     console.log(
         "RoomRent: initialization inaanza..."
     );
 
-    loadReferralFromURL();
-
-    bindEvents();
-
     /*
-     * TEMPORARILY DISABLED FOR TESTING
-     *
-     * Tunazima Firebase Auth listener kwa muda
-     * ili kujua kama ndiyo inayofanya screen kuwa nyeupe.
+     * Kwa test hii tunafanya initialization iwe tupu.
+     * Hakuna Auth, Firestore, navigation wala events.
      */
-
-    // initializeAuthListener();
 
     console.log(
         "RoomRent: initialization imekamilika."
     );
+
 }
 
 
@@ -1719,7 +1712,10 @@ function initializeRoomRent() {
    23. START AFTER DOM IS READY
    ========================================================= */
 
-console.log("ROOMRENT SCRIPT IMELOADED");
+console.log(
+    "ROOMRENT SCRIPT IMELOADED"
+);
+
 
 if (document.readyState === "loading") {
 
@@ -1727,18 +1723,25 @@ if (document.readyState === "loading") {
         "DOMContentLoaded",
         function () {
 
-            console.log("ROOMRENT DOM READY");
+            console.log(
+                "ROOMRENT DOM READY"
+            );
 
             initializeRoomRent();
 
         },
-        { once: true }
+        {
+            once: true
+        }
     );
 
 } else {
 
-    console.log("ROOMRENT DOM ALREADY READY");
+    console.log(
+        "ROOMRENT DOM ALREADY READY"
+    );
 
     initializeRoomRent();
 
-}
+               }
+
