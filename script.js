@@ -63,7 +63,77 @@ let currentUserData = null;
 const ADMIN_UID =
     "1kj3K591EHhHAOiSoxIp1xGve2x1";
 
+/* =========================================================
+   4. ROOM CONFIGURATION
+   ========================================================= */
 
+const ROOM_DURATION_DAYS = 90;
+
+const ROOM_PROFIT_RATE_PER_DAY = 0.04;
+
+const ROOM_DATA = [
+
+    {
+        roomNumber: "0023",
+        price: 30000,
+        maxBookingsPerUser: 2
+    },
+
+    {
+        roomNumber: "0024",
+        price: 70000,
+        maxBookingsPerUser: 4
+    },
+
+    {
+        roomNumber: "0025",
+        price: 140000,
+        maxBookingsPerUser: 4
+    },
+
+    {
+        roomNumber: "0026",
+        price: 210000,
+        maxBookingsPerUser: 4
+    },
+
+    {
+        roomNumber: "0027",
+        price: 280000,
+        maxBookingsPerUser: 4
+    },
+
+    {
+        roomNumber: "0028",
+        price: 350000,
+        maxBookingsPerUser: 4
+    },
+
+    {
+        roomNumber: "0029",
+        price: 420000,
+        maxBookingsPerUser: 4
+    },
+
+    {
+        roomNumber: "0030",
+        price: 490000,
+        maxBookingsPerUser: 4
+    },
+
+    {
+        roomNumber: "0031",
+        price: 560000,
+        maxBookingsPerUser: 4
+    },
+
+    {
+        roomNumber: "0032",
+        price: 630000,
+        maxBookingsPerUser: 4
+    }
+
+];
 /* =========================================================
    4. BASIC DOM HELPERS
 ========================================================= */
