@@ -1,6 +1,6 @@
 /* =========================================================
    ROOMRENT - SCRIPT.JS
-   FIREBASE + AUTHENTICATION + DASHBOARD + ROOMS
+   FIREBASE + AUTHENTICATION + DASHBOARD + ROOMS + PAYMENT
    ========================================================= */
 
 
@@ -52,7 +52,6 @@ try {
 
     }
 
-
     if (!firebase.apps.length) {
 
         firebase.initializeApp(
@@ -60,7 +59,6 @@ try {
         );
 
     }
-
 
     auth =
         firebase.auth();
@@ -71,11 +69,9 @@ try {
     storage =
         firebase.storage();
 
-
     console.log(
         "RoomRent: Firebase imeanzishwa."
     );
-
 
 } catch (error) {
 
@@ -95,6 +91,14 @@ let currentUser = null;
 
 let currentUserData = null;
 
+let selectedRoom = null;
+
+let selectedPaymentMethod = null;
+
+
+/* =========================================================
+   ADMIN UID
+========================================================= */
 
 const ADMIN_UID =
     "1kj3K591EHhHAOiSoxIp1xGve2x1";
@@ -189,16 +193,9 @@ function showElement(element) {
 
     if (!element) return;
 
-
     element.classList.remove(
         "hidden"
     );
-
-
-    /*
-     * Ondoa display:none iliyowekwa
-     * moja kwa moja kwenye HTML.
-     */
 
     element.style.removeProperty(
         "display"
@@ -211,11 +208,9 @@ function hideElement(element) {
 
     if (!element) return;
 
-
     element.classList.add(
         "hidden"
     );
-
 
     element.style.display =
         "none";
@@ -227,7 +222,6 @@ function showById(id) {
 
     const element =
         getElement(id);
-
 
     if (element) {
 
@@ -242,7 +236,6 @@ function hideById(id) {
 
     const element =
         getElement(id);
-
 
     if (element) {
 
@@ -262,13 +255,10 @@ function setMessage(
     const element =
         getElement(id);
 
-
     if (!element) return;
-
 
     element.textContent =
         message;
-
 
     element.className =
         "form-message " + type;
@@ -288,11 +278,9 @@ function showAuthScreen() {
     const appScreen =
         getElement("appScreen");
 
-
     showElement(
         authScreen
     );
-
 
     hideElement(
         appScreen
@@ -313,11 +301,9 @@ function showAppScreen() {
     const appScreen =
         getElement("appScreen");
 
-
     hideElement(
         authScreen
     );
-
 
     showElement(
         appScreen
@@ -336,11 +322,9 @@ function showLoginPanel() {
         "loginPanel"
     );
 
-
     hideById(
         "signUpPanel"
     );
-
 
     hideById(
         "forgotPasswordPanel"
@@ -355,11 +339,9 @@ function showRegisterPanel() {
         "loginPanel"
     );
 
-
     showById(
         "signUpPanel"
     );
-
 
     hideById(
         "forgotPasswordPanel"
@@ -374,11 +356,9 @@ function showForgotPasswordPanel() {
         "loginPanel"
     );
 
-
     hideById(
         "signUpPanel"
     );
-
 
     showById(
         "forgotPasswordPanel"
@@ -419,7 +399,6 @@ function hideAllAppSections() {
 
     ];
 
-
     sectionIds.forEach(
         function(id) {
 
@@ -435,11 +414,9 @@ function showSection(sectionId) {
 
     hideAllAppSections();
 
-
     showById(
         sectionId
     );
-
 
     window.scrollTo({
 
@@ -464,30 +441,25 @@ async function signInUser(event) {
 
     }
 
-
     const emailElement =
         getElement(
             "signInEmail"
         );
-
 
     const passwordElement =
         getElement(
             "signInPassword"
         );
 
-
     const email =
         emailElement
             ? emailElement.value.trim()
             : "";
 
-
     const password =
         passwordElement
             ? passwordElement.value
             : "";
-
 
     if (!email || !password) {
 
@@ -505,7 +477,6 @@ async function signInUser(event) {
 
     }
 
-
     if (!auth) {
 
         setMessage(
@@ -522,12 +493,10 @@ async function signInUser(event) {
 
     }
 
-
     const button =
         getElement(
             "signInButton"
         );
-
 
     try {
 
@@ -541,7 +510,6 @@ async function signInUser(event) {
 
         }
 
-
         setMessage(
 
             "signInMessage",
@@ -552,13 +520,11 @@ async function signInUser(event) {
 
         );
 
-
         await auth
             .signInWithEmailAndPassword(
                 email,
                 password
             );
-
 
         setMessage(
 
@@ -570,21 +536,15 @@ async function signInUser(event) {
 
         );
 
-
     } catch (error) {
 
         console.error(
-
             "RoomRent login error:",
-
             error
-
         );
-
 
         let message =
             "Imeshindikana kuingia.";
-
 
         if (
             error &&
@@ -597,7 +557,6 @@ async function signInUser(event) {
 
         }
 
-
         else if (
             error &&
             error.code ===
@@ -608,7 +567,6 @@ async function signInUser(event) {
                 "Akaunti hiyo haipo.";
 
         }
-
 
         else if (
             error &&
@@ -621,7 +579,6 @@ async function signInUser(event) {
 
         }
 
-
         else if (
             error &&
             error.code ===
@@ -633,7 +590,6 @@ async function signInUser(event) {
 
         }
 
-
         setMessage(
 
             "signInMessage",
@@ -643,7 +599,6 @@ async function signInUser(event) {
             "error"
 
         );
-
 
     } finally {
 
@@ -674,174 +629,132 @@ async function registerUser(event) {
 
     }
 
-
     const nameElement =
         getElement(
             "signUpName"
         );
-
 
     const phoneElement =
         getElement(
             "signUpPhone"
         );
 
-
     const emailElement =
         getElement(
             "signUpEmail"
         );
-
 
     const passwordElement =
         getElement(
             "signUpPassword"
         );
 
-
     const referralElement =
         getElement(
             "signUpReferral"
         );
-
 
     const name =
         nameElement
             ? nameElement.value.trim()
             : "";
 
-
     const phone =
         phoneElement
             ? phoneElement.value.trim()
             : "";
-
 
     const email =
         emailElement
             ? emailElement.value.trim()
             : "";
 
-
     const password =
         passwordElement
             ? passwordElement.value
             : "";
-
 
     const referralCode =
         referralElement
             ? referralElement.value.trim()
             : "";
 
-
     if (!name) {
 
         setMessage(
-
             "signUpMessage",
-
             "Weka jina lako.",
-
             "error"
-
         );
 
         return;
 
     }
-
 
     if (!phone) {
 
         setMessage(
-
             "signUpMessage",
-
             "Weka namba yako ya simu.",
-
             "error"
-
         );
 
         return;
 
     }
-
 
     if (!email) {
 
         setMessage(
-
             "signUpMessage",
-
             "Weka email yako.",
-
             "error"
-
         );
 
         return;
 
     }
-
 
     if (!password) {
 
         setMessage(
-
             "signUpMessage",
-
             "Weka password.",
-
             "error"
-
         );
 
         return;
 
     }
-
 
     if (password.length < 6) {
 
         setMessage(
-
             "signUpMessage",
-
             "Password iwe na angalau herufi 6.",
-
             "error"
-
         );
 
         return;
 
     }
-
 
     if (!auth || !db) {
 
         setMessage(
-
             "signUpMessage",
-
             "Firebase haijaandaliwa vizuri.",
-
             "error"
-
         );
 
         return;
 
     }
-
 
     const button =
         getElement(
             "signUpButton"
         );
-
 
     try {
 
@@ -855,17 +768,11 @@ async function registerUser(event) {
 
         }
 
-
         setMessage(
-
             "signUpMessage",
-
             "Tafadhali subiri...",
-
             "info"
-
         );
-
 
         const userCredential =
             await auth
@@ -874,10 +781,8 @@ async function registerUser(event) {
                     password
                 );
 
-
         const user =
             userCredential.user;
-
 
         if (!user) {
 
@@ -887,16 +792,13 @@ async function registerUser(event) {
 
         }
 
-
         const generatedReferralCode =
             createReferralCode(
                 user.uid
             );
 
-
         let referredBy =
             null;
-
 
         if (referralCode) {
 
@@ -912,7 +814,6 @@ async function registerUser(event) {
                         )
                         .limit(1)
                         .get();
-
 
                 if (
                     !sponsorSnapshot.empty
@@ -930,17 +831,13 @@ async function registerUser(event) {
             ) {
 
                 console.warn(
-
                     "Referral lookup failed:",
-
                     referralError
-
                 );
 
             }
 
         }
-
 
         const userData = {
 
@@ -999,7 +896,6 @@ async function registerUser(event) {
 
         };
 
-
         await db
             .collection("users")
             .doc(user.uid)
@@ -1007,40 +903,27 @@ async function registerUser(event) {
                 userData
             );
 
-
         currentUser =
             user;
-
 
         currentUserData =
             userData;
 
-
         setMessage(
-
             "signUpMessage",
-
             "Akaunti imetengenezwa kwa mafanikio.",
-
             "success"
-
         );
-
 
     } catch (error) {
 
         console.error(
-
             "RoomRent registration error:",
-
             error
-
         );
-
 
         let message =
             "Imeshindikana kutengeneza akaunti.";
-
 
         if (
             error &&
@@ -1053,7 +936,6 @@ async function registerUser(event) {
 
         }
 
-
         else if (
             error &&
             error.code ===
@@ -1064,7 +946,6 @@ async function registerUser(event) {
                 "Email si sahihi.";
 
         }
-
 
         else if (
             error &&
@@ -1077,17 +958,11 @@ async function registerUser(event) {
 
         }
 
-
         setMessage(
-
             "signUpMessage",
-
             message,
-
             "error"
-
         );
-
 
     } finally {
 
@@ -1118,7 +993,6 @@ function createReferralCode(uid) {
 
     }
 
-
     const cleanUid =
         uid
             .replace(
@@ -1126,7 +1000,6 @@ function createReferralCode(uid) {
                 ""
             )
             .toUpperCase();
-
 
     return (
         "RR" +
@@ -1149,20 +1022,16 @@ function createReferralLink(
 
     }
 
-
     const baseUrl =
         window.location.origin +
         window.location.pathname;
 
-
     return (
-
         baseUrl +
         "?ref=" +
         encodeURIComponent(
             referralCode
         )
-
     );
 
 }
@@ -1182,7 +1051,6 @@ async function loadCurrentUserData(
 
     }
 
-
     try {
 
         const snapshot =
@@ -1191,14 +1059,12 @@ async function loadCurrentUserData(
                 .doc(user.uid)
                 .get();
 
-
         if (snapshot.exists) {
 
             currentUserData =
                 snapshot.data();
 
         }
-
 
         else {
 
@@ -1239,20 +1105,14 @@ async function loadCurrentUserData(
 
         }
 
-
         return currentUserData;
-
 
     } catch (error) {
 
         console.error(
-
             "Loading user data failed:",
-
             error
-
         );
-
 
         return null;
 
@@ -1273,12 +1133,10 @@ function loadUserDashboard() {
 
     }
 
-
     const nameElement =
         getElement(
             "dashboardUserName"
         );
-
 
     if (nameElement) {
 
@@ -1288,12 +1146,10 @@ function loadUserDashboard() {
 
     }
 
-
     const balanceElement =
         getElement(
             "walletBalance"
         );
-
 
     if (balanceElement) {
 
@@ -1305,12 +1161,10 @@ function loadUserDashboard() {
 
     }
 
-
     const profitElement =
         getElement(
             "walletProfit"
         );
-
 
     if (profitElement) {
 
@@ -1322,17 +1176,14 @@ function loadUserDashboard() {
 
     }
 
-
     loadProfile();
 
     loadReferralInfo();
-
 
     const adminSection =
         getElement(
             "adminSection"
         );
-
 
     if (
 
@@ -1354,7 +1205,6 @@ function loadUserDashboard() {
         );
 
     }
-
 
     else {
 
@@ -1379,7 +1229,6 @@ function loadProfile() {
 
     }
 
-
     const fields = {
 
         profileName:
@@ -1400,14 +1249,12 @@ function loadProfile() {
 
     };
 
-
     Object.keys(fields)
         .forEach(
             function(id) {
 
                 const element =
                     getElement(id);
-
 
                 if (element) {
 
@@ -1434,18 +1281,15 @@ function loadReferralInfo() {
 
     }
 
-
     const codeElement =
         getElement(
             "userReferralCode"
         );
 
-
     const linkElement =
         getElement(
             "userReferralLink"
         );
-
 
     if (codeElement) {
 
@@ -1454,7 +1298,6 @@ function loadReferralInfo() {
             "";
 
     }
-
 
     if (linkElement) {
 
@@ -1475,7 +1318,6 @@ function formatMoney(amount) {
 
     const number =
         Number(amount) || 0;
-
 
     return (
 
@@ -1509,52 +1351,39 @@ async function resetPassword(event) {
 
     }
 
-
     const emailElement =
         getElement(
             "forgotPasswordEmail"
         );
-
 
     const email =
         emailElement
             ? emailElement.value.trim()
             : "";
 
-
     if (!email) {
 
         setMessage(
-
             "forgotPasswordMessage",
-
             "Weka email yako.",
-
             "error"
-
         );
 
         return;
 
     }
-
 
     if (!auth) {
 
         setMessage(
-
             "forgotPasswordMessage",
-
             "Firebase haijaandaliwa vizuri.",
-
             "error"
-
         );
 
         return;
 
     }
-
 
     try {
 
@@ -1563,37 +1392,23 @@ async function resetPassword(event) {
                 email
             );
 
-
         setMessage(
-
             "forgotPasswordMessage",
-
             "Link ya kubadilisha password imetumwa kwenye email yako.",
-
             "success"
-
         );
-
 
     } catch (error) {
 
         console.error(
-
             "Password reset error:",
-
             error
-
         );
 
-
         setMessage(
-
             "forgotPasswordMessage",
-
             "Imeshindikana kutuma reset email.",
-
             "error"
-
         );
 
     }
@@ -1613,33 +1428,31 @@ async function signOutUser() {
 
     }
 
-
     try {
 
         await auth.signOut();
 
-
         currentUser =
             null;
-
 
         currentUserData =
             null;
 
+        selectedRoom =
+            null;
+
+        selectedPaymentMethod =
+            null;
 
         showAuthScreen();
 
         showLoginPanel();
 
-
     } catch (error) {
 
         console.error(
-
             "Logout error:",
-
             error
-
         );
 
     }
@@ -1659,18 +1472,15 @@ async function copyReferralLink() {
 
     }
 
-
     const link =
         currentUserData.referralLink ||
         "";
-
 
     if (!link) {
 
         return;
 
     }
-
 
     try {
 
@@ -1679,22 +1489,18 @@ async function copyReferralLink() {
                 link
             );
 
-
         const button =
             getElement(
                 "copyReferralButton"
             );
-
 
         if (button) {
 
             const oldText =
                 button.textContent;
 
-
             button.textContent =
                 "Copied!";
-
 
             setTimeout(
                 function() {
@@ -1708,15 +1514,11 @@ async function copyReferralLink() {
 
         }
 
-
     } catch (error) {
 
         console.error(
-
             "Copy referral link failed:",
-
             error
-
         );
 
     }
@@ -1737,12 +1539,10 @@ function loadReferralFromURL() {
                 window.location.search
             );
 
-
         const referral =
             params.get(
                 "ref"
             );
-
 
         if (!referral) {
 
@@ -1750,12 +1550,10 @@ function loadReferralFromURL() {
 
         }
 
-
         const referralElement =
             getElement(
                 "signUpReferral"
             );
-
 
         if (referralElement) {
 
@@ -1764,21 +1562,16 @@ function loadReferralFromURL() {
 
         }
 
-
     } catch (error) {
 
         console.warn(
-
             "Referral URL error:",
-
             error
-
         );
 
     }
 
 }
-
 
 /* =========================================================
    22. AUTH STATE LISTENER
@@ -1789,16 +1582,12 @@ function initializeAuthListener() {
     if (!auth) {
 
         console.error(
-
             "RoomRent: Firebase Auth haipo."
-
         );
-
 
         showAuthScreen();
 
         showLoginPanel();
-
 
         return;
 
@@ -1809,13 +1598,10 @@ function initializeAuthListener() {
         async function(user) {
 
             console.log(
-
                 "RoomRent Auth State:",
-
                 user
                     ? "LOGGED IN"
                     : "LOGGED OUT"
-
             );
 
 
@@ -1876,7 +1662,16 @@ function initializeAuthListener() {
                     null;
 
 
+                selectedRoom =
+                    null;
+
+
+                selectedPaymentMethod =
+                    null;
+
+
                 showAuthScreen();
+
 
                 showLoginPanel();
 
@@ -2146,51 +1941,83 @@ function openBookingSection(roomNumber) {
         roomNumber
     );
 
-    const selectedRoom = ROOM_DATA.find(
-        function(room) {
-            return String(room.roomNumber) === String(roomNumber);
-        }
-    );
 
-    if (!selectedRoom) {
+    const foundRoom =
+        ROOM_DATA.find(
+            function(room) {
+
+                return String(
+                    room.roomNumber
+                ) === String(
+                    roomNumber
+                );
+
+            }
+        );
+
+
+    if (!foundRoom) {
 
         console.error(
+
             "RoomRent: Chumba hakijapatikana:",
+
             roomNumber
+
         );
 
         return;
+
     }
 
-    showSection("bookingSection");
+
+    selectedRoom =
+        foundRoom;
+
+
+    showSection(
+        "bookingSection"
+    );
+
 
     const bookingContent =
-        getElement("bookingContent");
+        getElement(
+            "bookingContent"
+        );
+
 
     if (!bookingContent) {
 
         console.error(
+
             "RoomRent: bookingContent haipo."
+
         );
 
         return;
+
     }
+
 
     const dailyProfit =
         selectedRoom.price *
         ROOM_PROFIT_RATE_PER_DAY;
 
+
     const totalEstimatedProfit =
         dailyProfit *
         ROOM_DURATION_DAYS;
+
 
     bookingContent.innerHTML = `
 
         <div class="booking-card">
 
             <h2>
-                🏠 Chumba ${selectedRoom.roomNumber}
+                🏠 Chumba
+                ${selectedRoom.roomNumber}
             </h2>
+
 
             <div class="booking-detail">
 
@@ -2199,7 +2026,9 @@ function openBookingSection(roomNumber) {
                 </span>
 
                 <strong>
-                    ${formatMoney(selectedRoom.price)}
+                    ${formatMoney(
+                        selectedRoom.price
+                    )}
                 </strong>
 
             </div>
@@ -2212,7 +2041,9 @@ function openBookingSection(roomNumber) {
                 </span>
 
                 <strong>
-                    ${formatMoney(dailyProfit)}
+                    ${formatMoney(
+                        dailyProfit
+                    )}
                 </strong>
 
             </div>
@@ -2225,7 +2056,8 @@ function openBookingSection(roomNumber) {
                 </span>
 
                 <strong>
-                    ${ROOM_DURATION_DAYS} siku
+                    ${ROOM_DURATION_DAYS}
+                    siku
                 </strong>
 
             </div>
@@ -2234,11 +2066,13 @@ function openBookingSection(roomNumber) {
             <div class="booking-detail">
 
                 <span>
-                    Faida inayokadiriwa kwa siku 90
+                    Faida inayokadiriwa kwa kipindi
                 </span>
 
                 <strong>
-                    ${formatMoney(totalEstimatedProfit)}
+                    ${formatMoney(
+                        totalEstimatedProfit
+                    )}
                 </strong>
 
             </div>
@@ -2251,7 +2085,8 @@ function openBookingSection(roomNumber) {
                 </span>
 
                 <strong>
-                    Hadi ${selectedRoom.maxBookingsPerUser}
+                    Hadi
+                    ${selectedRoom.maxBookingsPerUser}
                 </strong>
 
             </div>
@@ -2265,6 +2100,7 @@ function openBookingSection(roomNumber) {
                     baada ya booking kuthibitishwa.
                 </p>
 
+
                 <p>
                     Makadirio haya hayamaanishi kuwa
                     faida yote inalipwa mara moja.
@@ -2274,12 +2110,19 @@ function openBookingSection(roomNumber) {
 
 
             <button
+
                 type="button"
+
                 class="primary-button"
+
                 id="continueBookingButton"
+
                 data-room-number="${selectedRoom.roomNumber}"
+
             >
+
                 Endelea
+
             </button>
 
         </div>
@@ -2288,7 +2131,10 @@ function openBookingSection(roomNumber) {
 
 
     const continueButton =
-        getElement("continueBookingButton");
+        getElement(
+            "continueBookingButton"
+        );
+
 
     if (continueButton) {
 
@@ -2315,22 +2161,44 @@ function openBookingSection(roomNumber) {
    25B. BOOKING CONFIRMATION
 ========================================================= */
 
-function openBookingConfirmation(selectedRoom) {
+function openBookingConfirmation(
+    room
+) {
 
-    if (!selectedRoom) {
+    if (!room) {
+
         return;
+
     }
+
+
+    selectedRoom =
+        room;
+
 
     const bookingContent =
-        getElement("bookingContent");
+        getElement(
+            "bookingContent"
+        );
+
 
     if (!bookingContent) {
+
+        console.error(
+
+            "RoomRent: bookingContent haipo."
+
+        );
+
         return;
+
     }
 
+
     const dailyProfit =
-        selectedRoom.price *
+        room.price *
         ROOM_PROFIT_RATE_PER_DAY;
+
 
     const totalEstimatedProfit =
         dailyProfit *
@@ -2353,7 +2221,7 @@ function openBookingConfirmation(selectedRoom) {
                 </span>
 
                 <strong>
-                    ${selectedRoom.roomNumber}
+                    ${room.roomNumber}
                 </strong>
 
             </div>
@@ -2366,7 +2234,9 @@ function openBookingConfirmation(selectedRoom) {
                 </span>
 
                 <strong>
-                    ${formatMoney(selectedRoom.price)}
+                    ${formatMoney(
+                        room.price
+                    )}
                 </strong>
 
             </div>
@@ -2379,7 +2249,8 @@ function openBookingConfirmation(selectedRoom) {
                 </span>
 
                 <strong>
-                    ${ROOM_DURATION_DAYS} siku
+                    ${ROOM_DURATION_DAYS}
+                    siku
                 </strong>
 
             </div>
@@ -2392,7 +2263,9 @@ function openBookingConfirmation(selectedRoom) {
                 </span>
 
                 <strong>
-                    ${formatMoney(dailyProfit)}
+                    ${formatMoney(
+                        dailyProfit
+                    )}
                 </strong>
 
             </div>
@@ -2405,7 +2278,9 @@ function openBookingConfirmation(selectedRoom) {
                 </span>
 
                 <strong>
-                    ${formatMoney(totalEstimatedProfit)}
+                    ${formatMoney(
+                        totalEstimatedProfit
+                    )}
                 </strong>
 
             </div>
@@ -2422,21 +2297,34 @@ function openBookingConfirmation(selectedRoom) {
 
 
             <button
+
                 type="button"
+
                 class="primary-button"
+
                 id="confirmBookingButton"
-                data-room-number="${selectedRoom.roomNumber}"
+
+                data-room-number="${room.roomNumber}"
+
             >
+
                 Thibitisha Booking
+
             </button>
 
 
             <button
+
                 type="button"
+
                 class="secondary-button"
+
                 id="cancelBookingButton"
+
             >
+
                 Rudi
+
             </button>
 
         </div>
@@ -2445,7 +2333,10 @@ function openBookingConfirmation(selectedRoom) {
 
 
     const cancelButton =
-        getElement("cancelBookingButton");
+        getElement(
+            "cancelBookingButton"
+        );
+
 
     if (cancelButton) {
 
@@ -2456,7 +2347,7 @@ function openBookingConfirmation(selectedRoom) {
             function() {
 
                 openBookingSection(
-                    selectedRoom.roomNumber
+                    room.roomNumber
                 );
 
             }
@@ -2467,7 +2358,10 @@ function openBookingConfirmation(selectedRoom) {
 
 
     const confirmButton =
-        getElement("confirmBookingButton");
+        getElement(
+            "confirmBookingButton"
+        );
+
 
     if (confirmButton) {
 
@@ -2478,7 +2372,7 @@ function openBookingConfirmation(selectedRoom) {
             function() {
 
                 handleBookingConfirmation(
-                    selectedRoom
+                    room
                 );
 
             }
@@ -2494,7 +2388,9 @@ function openBookingConfirmation(selectedRoom) {
    25C. PAYMENT METHOD SELECTION
 ========================================================= */
 
-function handleBookingConfirmation(selectedRoom) {
+function handleBookingConfirmation(
+    room
+) {
 
     if (!currentUser) {
 
@@ -2503,37 +2399,58 @@ function handleBookingConfirmation(selectedRoom) {
         );
 
         return;
+
     }
 
-    if (!selectedRoom) {
+
+    if (!room) {
 
         return;
+
     }
 
+
+    selectedRoom =
+        room;
+
+
     console.log(
+
         "RoomRent: Payment method selection:",
-        selectedRoom.roomNumber
+
+        room.roomNumber
+
     );
 
+
     const bookingContent =
-        getElement("bookingContent");
+        getElement(
+            "bookingContent"
+        );
+
 
     if (!bookingContent) {
 
         console.error(
+
             "RoomRent: bookingContent haipo."
+
         );
 
         return;
+
     }
 
+
     const dailyProfit =
-        selectedRoom.price *
+        room.price *
         ROOM_PROFIT_RATE_PER_DAY;
+
 
     const totalEstimatedProfit =
         dailyProfit *
         ROOM_DURATION_DAYS;
+
 
     bookingContent.innerHTML = `
 
@@ -2543,6 +2460,7 @@ function handleBookingConfirmation(selectedRoom) {
                 💳 Chagua Njia ya Malipo
             </h2>
 
+
             <div class="booking-detail">
 
                 <span>
@@ -2550,10 +2468,11 @@ function handleBookingConfirmation(selectedRoom) {
                 </span>
 
                 <strong>
-                    ${selectedRoom.roomNumber}
+                    ${room.roomNumber}
                 </strong>
 
             </div>
+
 
             <div class="booking-detail">
 
@@ -2562,10 +2481,13 @@ function handleBookingConfirmation(selectedRoom) {
                 </span>
 
                 <strong>
-                    ${formatMoney(selectedRoom.price)}
+                    ${formatMoney(
+                        room.price
+                    )}
                 </strong>
 
             </div>
+
 
             <div class="booking-detail">
 
@@ -2574,10 +2496,12 @@ function handleBookingConfirmation(selectedRoom) {
                 </span>
 
                 <strong>
-                    ${ROOM_DURATION_DAYS} siku
+                    ${ROOM_DURATION_DAYS}
+                    siku
                 </strong>
 
             </div>
+
 
             <div class="booking-detail">
 
@@ -2586,10 +2510,13 @@ function handleBookingConfirmation(selectedRoom) {
                 </span>
 
                 <strong>
-                    ${formatMoney(dailyProfit)}
+                    ${formatMoney(
+                        dailyProfit
+                    )}
                 </strong>
 
             </div>
+
 
             <div class="booking-detail">
 
@@ -2598,7 +2525,9 @@ function handleBookingConfirmation(selectedRoom) {
                 </span>
 
                 <strong>
-                    ${formatMoney(totalEstimatedProfit)}
+                    ${formatMoney(
+                        totalEstimatedProfit
+                    )}
                 </strong>
 
             </div>
@@ -2612,9 +2541,13 @@ function handleBookingConfirmation(selectedRoom) {
 
 
                 <button
+
                     type="button"
+
                     class="primary-button payment-method-button"
+
                     id="mixxPaymentButton"
+
                 >
 
                     💳 MIXX BY YAS
@@ -2623,9 +2556,13 @@ function handleBookingConfirmation(selectedRoom) {
 
 
                 <button
+
                     type="button"
+
                     class="primary-button payment-method-button"
+
                     id="airtelPaymentButton"
+
                 >
 
                     📱 Airtel Money
@@ -2636,9 +2573,13 @@ function handleBookingConfirmation(selectedRoom) {
 
 
             <button
+
                 type="button"
+
                 class="secondary-button"
+
                 id="backToBookingConfirmationButton"
+
             >
 
                 Rudi
@@ -2650,14 +2591,11 @@ function handleBookingConfirmation(selectedRoom) {
     `;
 
 
-    /* =====================================================
-       MIXX BY YAS
-    ===================================================== */
-
     const mixxButton =
         getElement(
             "mixxPaymentButton"
         );
+
 
     if (mixxButton) {
 
@@ -2668,7 +2606,7 @@ function handleBookingConfirmation(selectedRoom) {
             function() {
 
                 showPaymentDetails(
-                    selectedRoom,
+                    room,
                     "MIXX BY YAS"
                 );
 
@@ -2679,14 +2617,11 @@ function handleBookingConfirmation(selectedRoom) {
     }
 
 
-    /* =====================================================
-       AIRTEL MONEY
-    ===================================================== */
-
     const airtelButton =
         getElement(
             "airtelPaymentButton"
         );
+
 
     if (airtelButton) {
 
@@ -2697,7 +2632,7 @@ function handleBookingConfirmation(selectedRoom) {
             function() {
 
                 showPaymentDetails(
-                    selectedRoom,
+                    room,
                     "Airtel Money"
                 );
 
@@ -2708,18 +2643,596 @@ function handleBookingConfirmation(selectedRoom) {
     }
 
 
-    /* =====================================================
-       RUDI KWENYE CONFIRMATION
-    ===================================================== */
-
     const backButton =
         getElement(
             "backToBookingConfirmationButton"
         );
 
+
     if (backButton) {
 
         backButton.addEventListener(
+
+            "click",
+
+            function() {
+
+                openBookingConfirmation(
+                    room
+                );
+
+            }
+
+        );
+
+    }
+
+           }/* =========================================================
+   22. AUTH STATE LISTENER
+========================================================= */
+
+function initializeAuthListener() {
+
+    if (!auth) {
+
+        console.error(
+            "RoomRent: Firebase Auth haipo."
+        );
+
+        showAuthScreen();
+
+        showLoginPanel();
+
+        return;
+
+    }
+
+
+    auth.onAuthStateChanged(
+        async function(user) {
+
+            console.log(
+                "RoomRent Auth State:",
+                user
+                    ? "LOGGED IN"
+                    : "LOGGED OUT"
+            );
+
+
+            if (user) {
+
+                currentUser =
+                    user;
+
+
+                try {
+
+                    await loadCurrentUserData(
+                        user
+                    );
+
+
+                    showAppScreen();
+
+
+                    showSection(
+                        "dashboardSection"
+                    );
+
+
+                    loadUserDashboard();
+
+
+                } catch (error) {
+
+                    console.error(
+
+                        "RoomRent: User loading error:",
+
+                        error
+
+                    );
+
+
+                    showAppScreen();
+
+
+                    showSection(
+                        "dashboardSection"
+                    );
+
+                }
+
+            }
+
+
+            else {
+
+                currentUser =
+                    null;
+
+
+                currentUserData =
+                    null;
+
+
+                selectedRoom =
+                    null;
+
+
+                selectedPaymentMethod =
+                    null;
+
+
+                showAuthScreen();
+
+
+                showLoginPanel();
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   23. ROOMS DISPLAY
+========================================================= */
+
+function loadRooms() {
+
+    console.log(
+        "RoomRent: loadRooms inaanza..."
+    );
+
+
+    const roomsList =
+        getElement(
+            "roomsList"
+        );
+
+
+    if (!roomsList) {
+
+        console.error(
+
+            "RoomRent: roomsList HAIPO kwenye HTML."
+
+        );
+
+        return;
+
+    }
+
+
+    if (!Array.isArray(ROOM_DATA)) {
+
+        console.error(
+
+            "RoomRent: ROOM_DATA HAIPO."
+
+        );
+
+
+        roomsList.innerHTML = `
+
+            <div class="empty-state">
+
+                <p>
+                    Vyumba havijapatikana.
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    roomsList.innerHTML =
+        "";
+
+
+    ROOM_DATA.forEach(
+        function(room) {
+
+            const dailyProfit =
+                room.price *
+                ROOM_PROFIT_RATE_PER_DAY;
+
+
+            const roomCard =
+                document.createElement(
+                    "div"
+                );
+
+
+            roomCard.className =
+                "room-card";
+
+
+            roomCard.innerHTML = `
+
+                <div class="room-card-content">
+
+                    <div class="room-number">
+
+                        🏠 Chumba
+                        ${room.roomNumber}
+
+                    </div>
+
+
+                    <div class="room-price">
+
+                        ${formatMoney(
+                            room.price
+                        )}
+
+                    </div>
+
+
+                    <div class="room-info">
+
+                        <div>
+
+                            <span>
+                                Faida kwa siku
+                            </span>
+
+                            <strong>
+
+                                ${formatMoney(
+                                    dailyProfit
+                                )}
+
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Muda wa uwekezaji
+                            </span>
+
+                            <strong>
+
+                                ${ROOM_DURATION_DAYS}
+                                siku
+
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Booking zako
+                            </span>
+
+                            <strong>
+
+                                Hadi
+                                ${room.maxBookingsPerUser}
+
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <button
+
+                        type="button"
+
+                        class="primary-button rent-room-button"
+
+                        data-room-number="${room.roomNumber}"
+
+                    >
+
+                        Kodisha Chumba
+
+                    </button>
+
+                </div>
+
+            `;
+
+
+            roomsList.appendChild(
+                roomCard
+            );
+
+        }
+    );
+
+
+    const rentButtons =
+        document.querySelectorAll(
+            ".rent-room-button"
+        );
+
+
+    rentButtons.forEach(
+        function(button) {
+
+            button.addEventListener(
+
+                "click",
+
+                function() {
+
+                    const roomNumber =
+                        button.dataset.roomNumber;
+
+
+                    openBookingSection(
+                        roomNumber
+                    );
+
+                }
+
+            );
+
+        }
+    );
+
+
+    console.log(
+
+        "RoomRent: Vyumba " +
+        ROOM_DATA.length +
+        " vimeonyeshwa."
+
+    );
+
+}
+
+
+/* =========================================================
+   24. OPEN ROOMS SECTION
+========================================================= */
+
+function openRoomsSection() {
+
+    console.log(
+        "RoomRent: Nafungua Rooms Section..."
+    );
+
+
+    showSection(
+        "roomsSection"
+    );
+
+
+    loadRooms();
+
+
+    console.log(
+        "RoomRent: Rooms Section imefunguliwa."
+    );
+
+}
+
+
+/* =========================================================
+   25. OPEN BOOKING SECTION
+========================================================= */
+
+function openBookingSection(roomNumber) {
+
+    console.log(
+        "RoomRent: Chumba kilichochaguliwa:",
+        roomNumber
+    );
+
+
+    const foundRoom =
+        ROOM_DATA.find(
+            function(room) {
+
+                return String(
+                    room.roomNumber
+                ) === String(
+                    roomNumber
+                );
+
+            }
+        );
+
+
+    if (!foundRoom) {
+
+        console.error(
+
+            "RoomRent: Chumba hakijapatikana:",
+
+            roomNumber
+
+        );
+
+        return;
+
+    }
+
+
+    selectedRoom =
+        foundRoom;
+
+
+    showSection(
+        "bookingSection"
+    );
+
+
+    const bookingContent =
+        getElement(
+            "bookingContent"
+        );
+
+
+    if (!bookingContent) {
+
+        console.error(
+
+            "RoomRent: bookingContent haipo."
+
+        );
+
+        return;
+
+    }
+
+
+    const dailyProfit =
+        selectedRoom.price *
+        ROOM_PROFIT_RATE_PER_DAY;
+
+
+    const totalEstimatedProfit =
+        dailyProfit *
+        ROOM_DURATION_DAYS;
+
+
+    bookingContent.innerHTML = `
+
+        <div class="booking-card">
+
+            <h2>
+                🏠 Chumba
+                ${selectedRoom.roomNumber}
+            </h2>
+
+
+            <div class="booking-detail">
+
+                <span>
+                    Bei ya chumba
+                </span>
+
+                <strong>
+                    ${formatMoney(
+                        selectedRoom.price
+                    )}
+                </strong>
+
+            </div>
+
+
+            <div class="booking-detail">
+
+                <span>
+                    Faida inayokadiriwa kwa siku
+                </span>
+
+                <strong>
+                    ${formatMoney(
+                        dailyProfit
+                    )}
+                </strong>
+
+            </div>
+
+
+            <div class="booking-detail">
+
+                <span>
+                    Muda wa uwekezaji
+                </span>
+
+                <strong>
+                    ${ROOM_DURATION_DAYS}
+                    siku
+                </strong>
+
+            </div>
+
+
+            <div class="booking-detail">
+
+                <span>
+                    Faida inayokadiriwa kwa kipindi
+                </span>
+
+                <strong>
+                    ${formatMoney(
+                        totalEstimatedProfit
+                    )}
+                </strong>
+
+            </div>
+
+
+            <div class="booking-detail">
+
+                <span>
+                    Kikomo cha bookings zako
+                </span>
+
+                <strong>
+                    Hadi
+                    ${selectedRoom.maxBookingsPerUser}
+                </strong>
+
+            </div>
+
+
+            <div class="booking-notice">
+
+                <p>
+                    ℹ️ Faida itaendelea kuhesabiwa
+                    kulingana na mfumo wa RoomRent
+                    baada ya booking kuthibitishwa.
+                </p>
+
+
+                <p>
+                    Makadirio haya hayamaanishi kuwa
+                    faida yote inalipwa mara moja.
+                </p>
+
+            </div>
+
+
+            <button
+
+                type="button"
+
+                class="primary-button"
+
+                id="continueBookingButton"
+
+                data-room-number="${selectedRoom.roomNumber}"
+
+            >
+
+                Endelea
+
+            </button>
+
+        </div>
+
+    `;
+
+
+    const continueButton =
+        getElement(
+            "continueBookingButton"
+        );
+
+
+    if (continueButton) {
+
+        continueButton.addEventListener(
 
             "click",
 
@@ -2739,52 +3252,51 @@ function handleBookingConfirmation(selectedRoom) {
 
 
 /* =========================================================
-   25D. PAYMENT DETAILS
+   25B. BOOKING CONFIRMATION
 ========================================================= */
 
-function showPaymentDetails(
-    selectedRoom,
-    paymentMethod
+function openBookingConfirmation(
+    room
 ) {
 
-    if (!selectedRoom) {
+    if (!room) {
 
         return;
+
     }
 
+
+    selectedRoom =
+        room;
+
+
     const bookingContent =
-        getElement("bookingContent");
+        getElement(
+            "bookingContent"
+        );
+
 
     if (!bookingContent) {
 
+        console.error(
+
+            "RoomRent: bookingContent haipo."
+
+        );
+
         return;
-    }
-
-
-    let paymentName = "";
-    let paymentPhone = "";
-
-
-    if (paymentMethod === "MIXX BY YAS") {
-
-        paymentName =
-            "HARUNA ISSA HAMAD";
-
-        paymentPhone =
-            "0651590936";
 
     }
 
 
-    else if (paymentMethod === "Airtel Money") {
+    const dailyProfit =
+        room.price *
+        ROOM_PROFIT_RATE_PER_DAY;
 
-        paymentName =
-            "HARUNA ISSA HAMAD";
 
-        paymentPhone =
-            "0667872515";
-
-    }
+    const totalEstimatedProfit =
+        dailyProfit *
+        ROOM_DURATION_DAYS;
 
 
     bookingContent.innerHTML = `
@@ -2792,7 +3304,7 @@ function showPaymentDetails(
         <div class="booking-card">
 
             <h2>
-                💳 ${paymentMethod}
+                🔐 Thibitisha Booking
             </h2>
 
 
@@ -2803,7 +3315,254 @@ function showPaymentDetails(
                 </span>
 
                 <strong>
-                    ${selectedRoom.roomNumber}
+                    ${room.roomNumber}
+                </strong>
+
+            </div>
+
+
+            <div class="booking-detail">
+
+                <span>
+                    Bei
+                </span>
+
+                <strong>
+                    ${formatMoney(
+                        room.price
+                    )}
+                </strong>
+
+            </div>
+
+
+            <div class="booking-detail">
+
+                <span>
+                    Muda
+                </span>
+
+                <strong>
+                    ${ROOM_DURATION_DAYS}
+                    siku
+                </strong>
+
+            </div>
+
+
+            <div class="booking-detail">
+
+                <span>
+                    Faida inayokadiriwa kwa siku
+                </span>
+
+                <strong>
+                    ${formatMoney(
+                        dailyProfit
+                    )}
+                </strong>
+
+            </div>
+
+
+            <div class="booking-detail">
+
+                <span>
+                    Faida inayokadiriwa kwa kipindi
+                </span>
+
+                <strong>
+                    ${formatMoney(
+                        totalEstimatedProfit
+                    )}
+                </strong>
+
+            </div>
+
+
+            <div class="booking-notice">
+
+                <p>
+                    Tafadhali hakikisha taarifa za
+                    chumba na bei kabla ya kuendelea.
+                </p>
+
+            </div>
+
+
+            <button
+
+                type="button"
+
+                class="primary-button"
+
+                id="confirmBookingButton"
+
+                data-room-number="${room.roomNumber}"
+
+            >
+
+                Thibitisha Booking
+
+            </button>
+
+
+            <button
+
+                type="button"
+
+                class="secondary-button"
+
+                id="cancelBookingButton"
+
+            >
+
+                Rudi
+
+            </button>
+
+        </div>
+
+    `;
+
+
+    const cancelButton =
+        getElement(
+            "cancelBookingButton"
+        );
+
+
+    if (cancelButton) {
+
+        cancelButton.addEventListener(
+
+            "click",
+
+            function() {
+
+                openBookingSection(
+                    room.roomNumber
+                );
+
+            }
+
+        );
+
+    }
+
+
+    const confirmButton =
+        getElement(
+            "confirmBookingButton"
+        );
+
+
+    if (confirmButton) {
+
+        confirmButton.addEventListener(
+
+            "click",
+
+            function() {
+
+                handleBookingConfirmation(
+                    room
+                );
+
+            }
+
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   25C. PAYMENT METHOD SELECTION
+========================================================= */
+
+function handleBookingConfirmation(
+    room
+) {
+
+    if (!currentUser) {
+
+        alert(
+            "Tafadhali ingia kwenye akaunti yako kwanza."
+        );
+
+        return;
+
+    }
+
+
+    if (!room) {
+
+        return;
+
+    }
+
+
+    selectedRoom =
+        room;
+
+
+    console.log(
+
+        "RoomRent: Payment method selection:",
+
+        room.roomNumber
+
+    );
+
+
+    const bookingContent =
+        getElement(
+            "bookingContent"
+        );
+
+
+    if (!bookingContent) {
+
+        console.error(
+
+            "RoomRent: bookingContent haipo."
+
+        );
+
+        return;
+
+    }
+
+
+    const dailyProfit =
+        room.price *
+        ROOM_PROFIT_RATE_PER_DAY;
+
+
+    const totalEstimatedProfit =
+        dailyProfit *
+        ROOM_DURATION_DAYS;
+
+
+    bookingContent.innerHTML = `
+
+        <div class="booking-card">
+
+            <h2>
+                💳 Chagua Njia ya Malipo
+            </h2>
+
+
+            <div class="booking-detail">
+
+                <span>
+                    Chumba
+                </span>
+
+                <strong>
+                    ${room.roomNumber}
                 </strong>
 
             </div>
@@ -2817,7 +3576,7 @@ function showPaymentDetails(
 
                 <strong>
                     ${formatMoney(
-                        selectedRoom.price
+                        room.price
                     )}
                 </strong>
 
@@ -2827,11 +3586,12 @@ function showPaymentDetails(
             <div class="booking-detail">
 
                 <span>
-                    Jina la kupokea
+                    Muda wa uwekezaji
                 </span>
 
                 <strong>
-                    ${paymentName}
+                    ${ROOM_DURATION_DAYS}
+                    siku
                 </strong>
 
             </div>
@@ -2840,224 +3600,80 @@ function showPaymentDetails(
             <div class="booking-detail">
 
                 <span>
-                    Namba ya malipo
-                </span>
-
-                <strong>
-                    ${paymentPhone}
-                </strong>
-
-            </div>
-
-
-            <div class="booking-notice">
-
-                <p>
-                    1. Tuma ${formatMoney(
-                        selectedRoom.price
-                    )} kupitia ${paymentMethod}.
-                </p>
-
-                <p>
-                    2. Hakikisha jina na namba ya
-                    mpokeaji ni sahihi kabla ya kutuma.
-                </p>
-
-                <p>
-                    3. Baada ya malipo, utawasilisha
-                    uthibitisho wa malipo.
-                </p>
-
-                <p>
-                    4. Booking haitakuwa active mpaka
-                    malipo yatakapothibitishwa na admin.
-                </p>
-
-            </div>
-
-
-            <button
-                type="button"
-                class="primary-button"
-                id="paymentMadeButton"
-            >
-
-                Nimeshafanya Malipo
-
-            </button>
-
-
-            <button
-                type="button"
-                class="secondary-button"
-                id="backToPaymentMethodsButton"
-            >
-
-                Chagua Njia Nyingine
-
-            </button>
-
-        </div>
-
-    `;
-
-
-    const paymentMadeButton =
-        getElement(
-            "paymentMadeButton"
-        );
-
-
-    if (paymentMadeButton) {
-
-        paymentMadeButton.addEventListener(
-
-            "click",
-
-            function() {
-
-                showPaymentSubmission(
-                    selectedRoom,
-                    paymentMethod
-                );
-
-            }
-
-        );
-
-    }
-
-
-    const backButton =
-        getElement(
-            "backToPaymentMethodsButton"
-        );
-
-
-    if (backButton) {
-
-        backButton.addEventListener(
-
-            "click",
-
-            function() {
-
-                handleBookingConfirmation(
-                    selectedRoom
-                );
-
-            }
-
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   25E. PAYMENT SUBMISSION
-========================================================= */
-
-function showPaymentSubmission(
-    selectedRoom,
-    paymentMethod
-) {
-
-    const bookingContent =
-        getElement("bookingContent");
-
-    if (!bookingContent) {
-
-        return;
-    }
-
-
-    bookingContent.innerHTML = `
-
-        <div class="booking-card">
-
-            <h2>
-                📋 Uthibitisho wa Malipo
-            </h2>
-
-
-            <div class="booking-detail">
-
-                <span>
-                    Chumba
-                </span>
-
-                <strong>
-                    ${selectedRoom.roomNumber}
-                </strong>
-
-            </div>
-
-
-            <div class="booking-detail">
-
-                <span>
-                    Njia ya malipo
-                </span>
-
-                <strong>
-                    ${paymentMethod}
-                </strong>
-
-            </div>
-
-
-            <div class="booking-detail">
-
-                <span>
-                    Kiasi
+                    Faida inayokadiriwa kwa siku
                 </span>
 
                 <strong>
                     ${formatMoney(
-                        selectedRoom.price
+                        dailyProfit
                     )}
                 </strong>
 
             </div>
 
 
-            <div class="booking-notice">
+            <div class="booking-detail">
 
-                <p>
-                    Umechagua ${paymentMethod}.
-                </p>
+                <span>
+                    Faida inayokadiriwa kwa kipindi
+                </span>
 
-                <p>
-                    Hatua hii itahifadhi taarifa za
-                    booking na kuifanya iwe
-                    <strong>Pending Payment Verification</strong>.
-                </p>
+                <strong>
+                    ${formatMoney(
+                        totalEstimatedProfit
+                    )}
+                </strong>
 
-                <p>
-                    Admin atakagua na kuthibitisha
-                    malipo kabla booking kuanza.
-                </p>
+            </div>
+
+
+            <div class="payment-methods">
+
+                <h3>
+                    Chagua njia ya malipo
+                </h3>
+
+
+                <button
+
+                    type="button"
+
+                    class="primary-button payment-method-button"
+
+                    id="mixxPaymentButton"
+
+                >
+
+                    💳 MIXX BY YAS
+
+                </button>
+
+
+                <button
+
+                    type="button"
+
+                    class="primary-button payment-method-button"
+
+                    id="airtelPaymentButton"
+
+                >
+
+                    📱 Airtel Money
+
+                </button>
 
             </div>
 
 
             <button
+
                 type="button"
-                class="primary-button"
-                id="submitPaymentProofButton"
-            >
 
-                Wasilisha Uthibitisho wa Malipo
-
-            </button>
-
-
-            <button
-                type="button"
                 class="secondary-button"
-                id="backToPaymentDetailsButton"
+
+                id="backToBookingConfirmationButton"
+
             >
 
                 Rudi
@@ -3069,9 +3685,61 @@ function showPaymentSubmission(
     `;
 
 
+    const mixxButton =
+        getElement(
+            "mixxPaymentButton"
+        );
+
+
+    if (mixxButton) {
+
+        mixxButton.addEventListener(
+
+            "click",
+
+            function() {
+
+                showPaymentDetails(
+                    room,
+                    "MIXX BY YAS"
+                );
+
+            }
+
+        );
+
+    }
+
+
+    const airtelButton =
+        getElement(
+            "airtelPaymentButton"
+        );
+
+
+    if (airtelButton) {
+
+        airtelButton.addEventListener(
+
+            "click",
+
+            function() {
+
+                showPaymentDetails(
+                    room,
+                    "Airtel Money"
+                );
+
+            }
+
+        );
+
+    }
+
+
     const backButton =
         getElement(
-            "backToPaymentDetailsButton"
+            "backToBookingConfirmationButton"
         );
 
 
@@ -3083,9 +3751,8 @@ function showPaymentSubmission(
 
             function() {
 
-                showPaymentDetails(
-                    selectedRoom,
-                    paymentMethod
+                openBookingConfirmation(
+                    room
                 );
 
             }
@@ -3094,602 +3761,2453 @@ function showPaymentSubmission(
 
     }
 
+}
 
-    const submitButton =
-        getElement(
-            "submitPaymentProofButton"
+/* =========================================================
+   26. PAYMENT DETAILS
+========================================================= */
+
+function showPaymentDetails(room, paymentMethod) {
+
+    selectedRoom = room;
+    selectedPaymentMethod = paymentMethod;
+
+    const bookingSection = getElement("bookingSection");
+
+    if (!bookingSection) {
+        console.error("bookingSection haipo.");
+        return;
+    }
+
+    let ownerName = "HARUNA ISSA HAMAD";
+    let paymentNumber = "";
+
+    if (paymentMethod === "MIXX BY YAS") {
+        paymentNumber = "0651590936";
+    } else if (paymentMethod === "Airtel Money") {
+        paymentNumber = "0667872515";
+    }
+
+    bookingSection.innerHTML = `
+        <div class="section-header">
+            <button id="backToBookingConfirmationButton" class="back-button">
+                ← Rudi
+            </button>
+
+            <h2>Maelekezo ya Malipo</h2>
+        </div>
+
+        <div class="payment-details-card">
+
+            <h3>Room ${room.roomNumber}</h3>
+
+            <p>
+                <strong>Kiasi cha kulipa:</strong>
+                ${formatMoney(room.price)}
+            </p>
+
+            <p>
+                <strong>Njia ya malipo:</strong>
+                ${paymentMethod}
+            </p>
+
+            <hr>
+
+            <p>
+                <strong>Jina la mpokeaji:</strong><br>
+                ${ownerName}
+            </p>
+
+            <p>
+                <strong>Namba ya malipo:</strong><br>
+                <span class="payment-number">
+                    ${paymentNumber}
+                </span>
+            </p>
+
+            <div class="payment-warning">
+                <strong>MUHIMU:</strong><br>
+                Hakikisha unatuma kiasi sahihi kwenye namba iliyoonyeshwa
+                hapo juu.
+            </div>
+
+            <button
+                id="paymentDoneButton"
+                class="primary-button"
+                type="button"
+            >
+                Nimeshafanya Malipo
+            </button>
+
+            <button
+                id="chooseAnotherPaymentButton"
+                class="secondary-button"
+                type="button"
+            >
+                Chagua Njia Nyingine
+            </button>
+
+        </div>
+    `;
+
+    showElement("bookingSection");
+
+    const paymentDoneButton =
+        getElement("paymentDoneButton");
+
+    if (paymentDoneButton) {
+
+        paymentDoneButton.addEventListener("click", function () {
+
+            showPaymentSubmission(
+                room,
+                paymentMethod
+            );
+
+        });
+
+    }
+
+    const chooseAnotherPaymentButton =
+        getElement("chooseAnotherPaymentButton");
+
+    if (chooseAnotherPaymentButton) {
+
+        chooseAnotherPaymentButton.addEventListener(
+            "click",
+            function () {
+
+                handleBookingConfirmation(room);
+
+            }
         );
 
+    }
+
+    const backButton =
+        getElement("backToBookingConfirmationButton");
+
+    if (backButton) {
+
+        backButton.addEventListener("click", function () {
+
+            openBookingConfirmation(room);
+
+        });
+
+    }
+}
+
+
+/* =========================================================
+   27. PAYMENT SUBMISSION
+========================================================= */
+
+function showPaymentSubmission(room, paymentMethod) {
+
+    selectedRoom = room;
+    selectedPaymentMethod = paymentMethod;
+
+    const bookingSection =
+        getElement("bookingSection");
+
+    if (!bookingSection) {
+        console.error("bookingSection haipo.");
+        return;
+    }
+
+    bookingSection.innerHTML = `
+        <div class="section-header">
+
+            <button
+                id="backToPaymentDetailsButton"
+                class="back-button"
+                type="button"
+            >
+                ← Rudi
+            </button>
+
+            <h2>Tuma Uthibitisho wa Malipo</h2>
+
+        </div>
+
+        <div class="payment-submission-card">
+
+            <h3>Room ${room.roomNumber}</h3>
+
+            <p>
+                <strong>Kiasi:</strong>
+                ${formatMoney(room.price)}
+            </p>
+
+            <p>
+                <strong>Njia ya malipo:</strong>
+                ${paymentMethod}
+            </p>
+
+            <div class="form-group">
+
+                <label for="transactionIdInput">
+                    Transaction ID / Reference Number
+                </label>
+
+                <input
+                    type="text"
+                    id="transactionIdInput"
+                    placeholder="Weka Transaction ID"
+                    autocomplete="off"
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="senderPhoneInput">
+                    Namba ya simu iliyotuma pesa
+                </label>
+
+                <input
+                    type="tel"
+                    id="senderPhoneInput"
+                    placeholder="Mfano: 06XXXXXXXX"
+                    autocomplete="tel"
+                >
+
+            </div>
+
+            <div
+                id="paymentSubmissionMessage"
+                class="form-message"
+            ></div>
+
+            <button
+                id="submitPaymentProofButton"
+                class="primary-button"
+                type="button"
+            >
+                Tuma Uthibitisho
+            </button>
+
+        </div>
+    `;
+
+    showElement("bookingSection");
+
+    const submitButton =
+        getElement("submitPaymentProofButton");
 
     if (submitButton) {
 
         submitButton.addEventListener(
-
             "click",
+            async function () {
 
-            function() {
+                const transactionId =
+                    getElement("transactionIdInput")?.value.trim();
 
-                alert(
-                    "Hatua ya kuhifadhi booking na uthibitisho wa malipo kwenye Firestore itaongezwa kwenye hatua inayofuata."
-                );
+                const senderPhone =
+                    getElement("senderPhoneInput")?.value.trim();
 
-            }
+                const message =
+                    getElement("paymentSubmissionMessage");
 
-        );
+                if (!currentUser) {
 
-    }
+                    if (message) {
+                        setMessage(
+                            "Tafadhali ingia kwenye akaunti yako kwanza.",
+                            "error"
+                        );
+                    }
 
-}
+                    return;
+                }
 
+                if (!transactionId) {
 
-/* =========================================================
-   26. INITIALIZE ROOMS
-========================================================= */
+                    if (message) {
+                        setMessage(
+                            "Tafadhali weka Transaction ID.",
+                            "error"
+                        );
+                    }
 
-function initializeRoomsSection() {
+                    return;
+                }
 
-    console.log(
+                if (!senderPhone) {
 
-        "RoomRent: Rooms section imeandaliwa."
+                    if (message) {
+                        setMessage(
+                            "Tafadhali weka namba ya simu iliyotuma malipo.",
+                            "error"
+                        );
+                    }
 
-    );
+                    return;
+                }
 
-}
-
-
-/* =========================================================
-   27. EVENT BINDING
-========================================================= */
-
-function bindEvents() {
-
-    const signInForm =
-        getElement(
-            "signInForm"
-        );
-
-
-    const signUpForm =
-        getElement(
-            "signUpForm"
-        );
-
-
-    const forgotPasswordForm =
-        getElement(
-            "forgotPasswordForm"
-        );
-
-
-    if (signInForm) {
-
-        signInForm.addEventListener(
-
-            "submit",
-
-            signInUser
-
-        );
-
-    }
-
-
-    if (signUpForm) {
-
-        signUpForm.addEventListener(
-
-            "submit",
-
-            registerUser
-
-        );
-
-    }
-
-
-    if (forgotPasswordForm) {
-
-        forgotPasswordForm.addEventListener(
-
-            "submit",
-
-            resetPassword
-
-        );
-
-    }
-
-
-    const showRegisterButton =
-        getElement(
-            "showRegisterButton"
-        );
-
-
-    if (showRegisterButton) {
-
-        showRegisterButton.addEventListener(
-
-            "click",
-
-            showRegisterPanel
-
-        );
-
-    }
-
-
-    const showLoginButton =
-        getElement(
-            "showLoginButton"
-        );
-
-
-    if (showLoginButton) {
-
-        showLoginButton.addEventListener(
-
-            "click",
-
-            showLoginPanel
-
-        );
-
-    }
-
-
-    const showForgotPasswordButton =
-        getElement(
-            "showForgotPasswordButton"
-        );
-
-
-    if (showForgotPasswordButton) {
-
-        showForgotPasswordButton.addEventListener(
-
-            "click",
-
-            showForgotPasswordPanel
-
-        );
-
-    }
-
-
-    const backToLoginButton =
-        getElement(
-            "backToLoginButton"
-        );
-
-
-    if (backToLoginButton) {
-
-        backToLoginButton.addEventListener(
-
-            "click",
-
-            showLoginPanel
-
-        );
-
-    }
-
-
-    const signOutButton =
-        getElement(
-            "signOutButton"
-        );
-
-
-    if (signOutButton) {
-
-        signOutButton.addEventListener(
-
-            "click",
-
-            signOutUser
-
-        );
-
-    }
-
-
-    const copyReferralButton =
-        getElement(
-            "copyReferralButton"
-        );
-
-
-    if (copyReferralButton) {
-
-        copyReferralButton.addEventListener(
-
-            "click",
-
-            copyReferralLink
-
-        );
-
-    }
-
-
-    /* -----------------------------------------------------
-       DASHBOARD BUTTONS
-    ----------------------------------------------------- */
-
-
-    const viewRoomsButton =
-        getElement(
-            "viewRoomsButton"
-        );
-
-
-    if (viewRoomsButton) {
-
-        viewRoomsButton.addEventListener(
-
-            "click",
-
-            function() {
+                submitButton.disabled = true;
+                submitButton.textContent =
+                    "Inatuma...";
 
                 /*
-                 * MUHIMU:
-                 * Usitumie showSection hapa.
-                 * openRoomsSection() ndiyo
-                 * inafungua section na kujaza vyumba.
+                 * KWA SASA:
+                 * Hatua hii inathibitisha taarifa za mtumiaji
+                 * kwenye interface tu.
+                 *
+                 * Hatutaandika "malipo yamehifadhiwa" kwa sababu
+                 * Firestore booking/payment collection bado
+                 * haijaunganishwa katika sehemu hii.
                  */
 
-                openRoomsSection();
-
-            }
-
-        );
-
-    }
-
-
-    const myBookingsButton =
-        getElement(
-            "myBookingsButton"
-        );
-
-
-    if (myBookingsButton) {
-
-        myBookingsButton.addEventListener(
-
-            "click",
-
-            function() {
-
-                showSection(
-                    "myBookingsSection"
-                );
-
-            }
-
-        );
-
-    }
-
-
-    const withdrawButton =
-        getElement(
-            "withdrawButton"
-        );
-
-
-    if (withdrawButton) {
-
-        withdrawButton.addEventListener(
-
-            "click",
-
-            function() {
-
-                showSection(
-                    "withdrawalSection"
-                );
-
-            }
-
-        );
-
-    }
-
-
-    const referralButton =
-        getElement(
-            "referralButton"
-        );
-
-
-    if (referralButton) {
-
-        referralButton.addEventListener(
-
-            "click",
-
-            function() {
-
-                showSection(
-                    "referralSection"
-                );
-
-            }
-
-        );
-
-    }
-
-
-    /* -----------------------------------------------------
-       BOTTOM NAVIGATION
-    ----------------------------------------------------- */
-
-
-    const homeNavButton =
-        getElement(
-            "homeNavButton"
-        );
-
-
-    if (homeNavButton) {
-
-        homeNavButton.addEventListener(
-
-            "click",
-
-            function() {
-
-                showSection(
-                    "dashboardSection"
-                );
-
-            }
-
-        );
-
-    }
-
-
-    const roomsNavButton =
-        getElement(
-            "roomsNavButton"
-        );
-
-
-    if (roomsNavButton) {
-
-        roomsNavButton.addEventListener(
-
-            "click",
-
-            function() {
-
-                /*
-                 * MUHIMU:
-                 * Rooms navigation pia lazima
-                 * iite openRoomsSection()
-                 * ili loadRooms() ifanye kazi.
-                 */
-
-                openRoomsSection();
-
-            }
-
-        );
-
-    }
-
-
-    const bookingsNavButton =
-        getElement(
-            "bookingsNavButton"
-        );
-
-
-    if (bookingsNavButton) {
-
-        bookingsNavButton.addEventListener(
-
-            "click",
-
-            function() {
-
-                showSection(
-                    "myBookingsSection"
-                );
-
-            }
-
-        );
-
-    }
-
-
-    const accountNavButton =
-        getElement(
-            "accountNavButton"
-        );
-
-
-    if (accountNavButton) {
-
-        accountNavButton.addEventListener(
-
-            "click",
-
-            function() {
-
-                showSection(
-                    "accountSection"
-                );
-
-            }
-
-        );
-
-    }
-
-
-    /* -----------------------------------------------------
-       BACK BUTTONS
-    ----------------------------------------------------- */
-
-    const backButtons = [
-
-        "roomsBackButton",
-
-        "bookingBackButton",
-
-        "myBookingsBackButton",
-
-        "withdrawalBackButton",
-
-        "withdrawalHistoryBackButton",
-
-        "referralBackButton",
-
-        "notificationsBackButton",
-
-        "transactionsBackButton",
-
-        "accountBackButton"
-
-    ];
-
-
-    backButtons.forEach(
-
-        function(id) {
-
-            const button =
-                getElement(id);
-
-
-            if (!button) {
-
-                return;
-
-            }
-
-
-            button.addEventListener(
-
-                "click",
-
-                function() {
-
-                    showSection(
-                        "dashboardSection"
+                if (message) {
+
+                    setMessage(
+                        "Uthibitisho umejazwa vizuri. Hatua inayofuata ni kuunganisha taarifa hizi na Firestore ili booking itunzwe na admin aweze kuithibitisha.",
+                        "success"
                     );
 
                 }
 
-            );
+                submitButton.disabled = false;
+                submitButton.textContent =
+                    "Tuma Uthibitisho";
 
-        }
+            }
+        );
 
-    );
+    }
+
+    const backButton =
+        getElement("backToPaymentDetailsButton");
+
+    if (backButton) {
+
+        backButton.addEventListener(
+            "click",
+            function () {
+
+                showPaymentDetails(
+                    room,
+                    paymentMethod
+                );
+
+            }
+        );
+
+    }
+}
+
+
+/* =========================================================
+   28. INITIALIZE ROOMS
+========================================================= */
+
+function initializeRoomsSection() {
+
+    const roomsSection =
+        getElement("roomsSection");
+
+    if (!roomsSection) {
+        console.warn("roomsSection haipo kwenye HTML.");
+        return;
+    }
+
+    loadRooms();
 
 }
 
 
 /* =========================================================
-   28. INITIALIZATION
+   29. EVENT BINDING
+========================================================= */
+
+function bindEvents() {
+
+    /* ---------- LOGIN ---------- */
+
+    const signInForm =
+        getElement("signInForm");
+
+    if (signInForm) {
+
+        signInForm.addEventListener(
+            "submit",
+            signInUser
+        );
+
+    }
+
+
+    /* ---------- REGISTER ---------- */
+
+    const signUpForm =
+        getElement("signUpForm");
+
+    if (signUpForm) {
+
+        signUpForm.addEventListener(
+            "submit",
+            registerUser
+        );
+
+    }
+
+
+    /* ---------- FORGOT PASSWORD ---------- */
+
+    const forgotPasswordForm =
+        getElement("forgotPasswordForm");
+
+    if (forgotPasswordForm) {
+
+        forgotPasswordForm.addEventListener(
+            "submit",
+            resetPassword
+        );
+
+    }
+
+
+    /* ---------- SHOW REGISTER ---------- */
+
+    const showRegisterButton =
+        getElement("showRegisterButton");
+
+    if (showRegisterButton) {
+
+        showRegisterButton.addEventListener(
+            "click",
+            showRegisterPanel
+        );
+
+    }
+
+
+    /* ---------- SHOW LOGIN ---------- */
+
+    const showLoginButton =
+        getElement("showLoginButton");
+
+    if (showLoginButton) {
+
+        showLoginButton.addEventListener(
+            "click",
+            showLoginPanel
+        );
+
+    }
+
+
+    /* ---------- SHOW FORGOT PASSWORD ---------- */
+
+    const showForgotPasswordButton =
+        getElement("showForgotPasswordButton");
+
+    if (showForgotPasswordButton) {
+
+        showForgotPasswordButton.addEventListener(
+            "click",
+            showForgotPasswordPanel
+        );
+
+    }
+
+
+    /* ---------- BACK TO LOGIN ---------- */
+
+    const backToLoginButton =
+        getElement("backToLoginButton");
+
+    if (backToLoginButton) {
+
+        backToLoginButton.addEventListener(
+            "click",
+            showLoginPanel
+        );
+
+    }
+
+
+    /* ---------- LOGOUT ---------- */
+
+    const logoutButton =
+        getElement("logoutButton");
+
+    if (logoutButton) {
+
+        logoutButton.addEventListener(
+            "click",
+            signOutUser
+        );
+
+    }
+
+
+    /* ---------- COPY REFERRAL ---------- */
+
+    const copyReferralButton =
+        getElement("copyReferralButton");
+
+    if (copyReferralButton) {
+
+        copyReferralButton.addEventListener(
+            "click",
+            copyReferralLink
+        );
+
+    }
+
+
+    /* ---------- DASHBOARD: ROOMS ---------- */
+
+    const viewRoomsButton =
+        getElement("viewRoomsButton");
+
+    if (viewRoomsButton) {
+
+        viewRoomsButton.addEventListener(
+            "click",
+            openRoomsSection
+        );
+
+    }
+
+
+    /* ---------- DASHBOARD: MY BOOKINGS ---------- */
+
+    const viewBookingsButton =
+        getElement("viewBookingsButton");
+
+    if (viewBookingsButton) {
+
+        viewBookingsButton.addEventListener(
+            "click",
+            function () {
+
+                showSection("myBookingsSection");
+
+            }
+        );
+
+    }
+
+
+    /* ---------- DASHBOARD: WITHDRAW ---------- */
+
+    const withdrawButton =
+        getElement("withdrawButton");
+
+    if (withdrawButton) {
+
+        withdrawButton.addEventListener(
+            "click",
+            function () {
+
+                showSection("withdrawalSection");
+
+            }
+        );
+
+    }
+
+
+    /* ---------- DASHBOARD: REFERRAL ---------- */
+
+    const referralButton =
+        getElement("referralButton");
+
+    if (referralButton) {
+
+        referralButton.addEventListener(
+            "click",
+            function () {
+
+                showSection("referralSection");
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       BOTTOM NAVIGATION
+    ===================================================== */
+
+    const bottomHomeButton =
+        getElement("bottomHomeButton");
+
+    if (bottomHomeButton) {
+
+        bottomHomeButton.addEventListener(
+            "click",
+            function () {
+
+                showSection("dashboardSection");
+
+            }
+        );
+
+    }
+
+
+    const bottomRoomsButton =
+        getElement("bottomRoomsButton");
+
+    if (bottomRoomsButton) {
+
+        bottomRoomsButton.addEventListener(
+            "click",
+            openRoomsSection
+        );
+
+    }
+
+
+    const bottomBookingsButton =
+        getElement("bottomBookingsButton");
+
+    if (bottomBookingsButton) {
+
+        bottomBookingsButton.addEventListener(
+            "click",
+            function () {
+
+                showSection("myBookingsSection");
+
+            }
+        );
+
+    }
+
+
+    const bottomAccountButton =
+        getElement("bottomAccountButton");
+
+    if (bottomAccountButton) {
+
+        bottomAccountButton.addEventListener(
+            "click",
+            function () {
+
+                showSection("accountSection");
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       BACK BUTTONS
+    ===================================================== */
+
+    const backFromRoomsButton =
+        getElement("backFromRoomsButton");
+
+    if (backFromRoomsButton) {
+
+        backFromRoomsButton.addEventListener(
+            "click",
+            function () {
+
+                showSection("dashboardSection");
+
+            }
+        );
+
+    }
+
+
+    const backFromBookingsButton =
+        getElement("backFromBookingsButton");
+
+    if (backFromBookingsButton) {
+
+        backFromBookingsButton.addEventListener(
+            "click",
+            function () {
+
+                showSection("dashboardSection");
+
+            }
+        );
+
+    }
+
+
+    const backFromWithdrawalButton =
+        getElement("backFromWithdrawalButton");
+
+    if (backFromWithdrawalButton) {
+
+        backFromWithdrawalButton.addEventListener(
+            "click",
+            function () {
+
+                showSection("dashboardSection");
+
+            }
+        );
+
+    }
+
+
+    const backFromReferralButton =
+        getElement("backFromReferralButton");
+
+    if (backFromReferralButton) {
+
+        backFromReferralButton.addEventListener(
+            "click",
+            function () {
+
+                showSection("dashboardSection");
+
+            }
+        );
+
+    }
+
+
+    const backFromAccountButton =
+        getElement("backFromAccountButton");
+
+    if (backFromAccountButton) {
+
+        backFromAccountButton.addEventListener(
+            "click",
+            function () {
+
+                showSection("dashboardSection");
+
+            }
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   30. INITIALIZE ROOMRENT
 ========================================================= */
 
 function initializeRoomRent() {
 
-    console.log(
+    try {
 
-        "RoomRent: initialization inaanza..."
+        console.log("RoomRent inaanza...");
 
+        bindEvents();
+
+        initializeAuthListener();
+
+        initializeRoomsSection();
+
+        loadReferralFromURL();
+
+        console.log(
+            "RoomRent imeanzishwa kikamilifu."
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Hitilafu wakati wa kuanzisha RoomRent:",
+            error
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   31. DOM READY
+========================================================= */
+
+if (document.readyState === "loading") {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        initializeRoomRent
     );
 
+} else {
 
-    bindEvents();
+    initializeRoomRent();
+
+           }/* =========================================================
+   26. PAYMENT DETAILS
+========================================================= */
+
+function showPaymentDetails(room, paymentMethod) {
+
+    selectedRoom = room;
+    selectedPaymentMethod = paymentMethod;
+
+    const bookingSection = getElement("bookingSection");
+
+    if (!bookingSection) {
+        console.error("bookingSection haipo.");
+        return;
+    }
+
+    let ownerName = "HARUNA ISSA HAMAD";
+    let paymentNumber = "";
+
+    if (paymentMethod === "MIXX BY YAS") {
+        paymentNumber = "0651590936";
+    } else if (paymentMethod === "Airtel Money") {
+        paymentNumber = "0667872515";
+    }
+
+    bookingSection.innerHTML = `
+        <div class="section-header">
+            <button id="backToBookingConfirmationButton" class="back-button">
+                ← Rudi
+            </button>
+
+            <h2>Maelekezo ya Malipo</h2>
+        </div>
+
+        <div class="payment-details-card">
+
+            <h3>Room ${room.roomNumber}</h3>
+
+            <p>
+                <strong>Kiasi cha kulipa:</strong>
+                ${formatMoney(room.price)}
+            </p>
+
+            <p>
+                <strong>Njia ya malipo:</strong>
+                ${paymentMethod}
+            </p>
+
+            <hr>
+
+            <p>
+                <strong>Jina la mpokeaji:</strong><br>
+                ${ownerName}
+            </p>
+
+            <p>
+                <strong>Namba ya malipo:</strong><br>
+                <span class="payment-number">
+                    ${paymentNumber}
+                </span>
+            </p>
+
+            <div class="payment-warning">
+                <strong>MUHIMU:</strong><br>
+                Hakikisha unatuma kiasi sahihi kwenye namba iliyoonyeshwa
+                hapo juu.
+            </div>
+
+            <button
+                id="paymentDoneButton"
+                class="primary-button"
+                type="button"
+            >
+                Nimeshafanya Malipo
+            </button>
+
+            <button
+                id="chooseAnotherPaymentButton"
+                class="secondary-button"
+                type="button"
+            >
+                Chagua Njia Nyingine
+            </button>
+
+        </div>
+    `;
+
+    showElement("bookingSection");
+
+    const paymentDoneButton =
+        getElement("paymentDoneButton");
+
+    if (paymentDoneButton) {
+
+        paymentDoneButton.addEventListener("click", function () {
+
+            showPaymentSubmission(
+                room,
+                paymentMethod
+            );
+
+        });
+
+    }
+
+    const chooseAnotherPaymentButton =
+        getElement("chooseAnotherPaymentButton");
+
+    if (chooseAnotherPaymentButton) {
+
+        chooseAnotherPaymentButton.addEventListener(
+            "click",
+            function () {
+
+                handleBookingConfirmation(room);
+
+            }
+        );
+
+    }
+
+    const backButton =
+        getElement("backToBookingConfirmationButton");
+
+    if (backButton) {
+
+        backButton.addEventListener("click", function () {
+
+            openBookingConfirmation(room);
+
+        });
+
+    }
+}
 
 
-    console.log(
+/* =========================================================
+   27. PAYMENT SUBMISSION
+========================================================= */
 
-        "RoomRent: events zimeunganishwa."
+function showPaymentSubmission(room, paymentMethod) {
 
+    selectedRoom = room;
+    selectedPaymentMethod = paymentMethod;
+
+    const bookingSection =
+        getElement("bookingSection");
+
+    if (!bookingSection) {
+        console.error("bookingSection haipo.");
+        return;
+    }
+
+    bookingSection.innerHTML = `
+        <div class="section-header">
+
+            <button
+                id="backToPaymentDetailsButton"
+                class="back-button"
+                type="button"
+            >
+                ← Rudi
+            </button>
+
+            <h2>Tuma Uthibitisho wa Malipo</h2>
+
+        </div>
+
+        <div class="payment-submission-card">
+
+            <h3>Room ${room.roomNumber}</h3>
+
+            <p>
+                <strong>Kiasi:</strong>
+                ${formatMoney(room.price)}
+            </p>
+
+            <p>
+                <strong>Njia ya malipo:</strong>
+                ${paymentMethod}
+            </p>
+
+            <div class="form-group">
+
+                <label for="transactionIdInput">
+                    Transaction ID / Reference Number
+                </label>
+
+                <input
+                    type="text"
+                    id="transactionIdInput"
+                    placeholder="Weka Transaction ID"
+                    autocomplete="off"
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="senderPhoneInput">
+                    Namba ya simu iliyotuma pesa
+                </label>
+
+                <input
+                    type="tel"
+                    id="senderPhoneInput"
+                    placeholder="Mfano: 06XXXXXXXX"
+                    autocomplete="tel"
+                >
+
+            </div>
+
+            <div
+                id="paymentSubmissionMessage"
+                class="form-message"
+            ></div>
+
+            <button
+                id="submitPaymentProofButton"
+                class="primary-button"
+                type="button"
+            >
+                Tuma Uthibitisho
+            </button>
+
+        </div>
+    `;
+
+    showElement("bookingSection");
+
+    const submitButton =
+        getElement("submitPaymentProofButton");
+
+    if (submitButton) {
+
+        submitButton.addEventListener(
+            "click",
+            async function () {
+
+                const transactionId =
+                    getElement("transactionIdInput")?.value.trim();
+
+                const senderPhone =
+                    getElement("senderPhoneInput")?.value.trim();
+
+                const message =
+                    getElement("paymentSubmissionMessage");
+
+                if (!currentUser) {
+
+                    if (message) {
+                        setMessage(
+                            "Tafadhali ingia kwenye akaunti yako kwanza.",
+                            "error"
+                        );
+                    }
+
+                    return;
+                }
+
+                if (!transactionId) {
+
+                    if (message) {
+                        setMessage(
+                            "Tafadhali weka Transaction ID.",
+                            "error"
+                        );
+                    }
+
+                    return;
+                }
+
+                if (!senderPhone) {
+
+                    if (message) {
+                        setMessage(
+                            "Tafadhali weka namba ya simu iliyotuma malipo.",
+                            "error"
+                        );
+                    }
+
+                    return;
+                }
+
+                submitButton.disabled = true;
+                submitButton.textContent =
+                    "Inatuma...";
+
+                /*
+                 * KWA SASA:
+                 * Hatua hii inathibitisha taarifa za mtumiaji
+                 * kwenye interface tu.
+                 *
+                 * Hatutaandika "malipo yamehifadhiwa" kwa sababu
+                 * Firestore booking/payment collection bado
+                 * haijaunganishwa katika sehemu hii.
+                 */
+
+                if (message) {
+
+                    setMessage(
+                        "Uthibitisho umejazwa vizuri. Hatua inayofuata ni kuunganisha taarifa hizi na Firestore ili booking itunzwe na admin aweze kuithibitisha.",
+                        "success"
+                    );
+
+                }
+
+                submitButton.disabled = false;
+                submitButton.textContent =
+                    "Tuma Uthibitisho";
+
+            }
+        );
+
+    }
+
+    const backButton =
+        getElement("backToPaymentDetailsButton");
+
+    if (backButton) {
+
+        backButton.addEventListener(
+            "click",
+            function () {
+
+                showPaymentDetails(
+                    room,
+                    paymentMethod
+                );
+
+            }
+        );
+
+    }
+}
+
+
+/* =========================================================
+   28. INITIALIZE ROOMS
+========================================================= */
+
+function initializeRoomsSection() {
+
+    const roomsSection =
+        getElement("roomsSection");
+
+    if (!roomsSection) {
+        console.warn("roomsSection haipo kwenye HTML.");
+        return;
+    }
+
+    loadRooms();
+
+}
+
+
+/* =========================================================
+   29. EVENT BINDING
+========================================================= */
+
+function bindEvents() {
+
+    /* ---------- LOGIN ---------- */
+
+    const signInForm =
+        getElement("signInForm");
+
+    if (signInForm) {
+
+        signInForm.addEventListener(
+            "submit",
+            signInUser
+        );
+
+    }
+
+
+    /* ---------- REGISTER ---------- */
+
+    const signUpForm =
+        getElement("signUpForm");
+
+    if (signUpForm) {
+
+        signUpForm.addEventListener(
+            "submit",
+            registerUser
+        );
+
+    }
+
+
+    /* ---------- FORGOT PASSWORD ---------- */
+
+    const forgotPasswordForm =
+        getElement("forgotPasswordForm");
+
+    if (forgotPasswordForm) {
+
+        forgotPasswordForm.addEventListener(
+            "submit",
+            resetPassword
+        );
+
+    }
+
+
+    /* ---------- SHOW REGISTER ---------- */
+
+    const showRegisterButton =
+        getElement("showRegisterButton");
+
+    if (showRegisterButton) {
+
+        showRegisterButton.addEventListener(
+            "click",
+            showRegisterPanel
+        );
+
+    }
+
+
+    /* ---------- SHOW LOGIN ---------- */
+
+    const showLoginButton =
+        getElement("showLoginButton");
+
+    if (showLoginButton) {
+
+        showLoginButton.addEventListener(
+            "click",
+            showLoginPanel
+        );
+
+    }
+
+
+    /* ---------- SHOW FORGOT PASSWORD ---------- */
+
+    const showForgotPasswordButton =
+        getElement("showForgotPasswordButton");
+
+    if (showForgotPasswordButton) {
+
+        showForgotPasswordButton.addEventListener(
+            "click",
+            showForgotPasswordPanel
+        );
+
+    }
+
+
+    /* ---------- BACK TO LOGIN ---------- */
+
+    const backToLoginButton =
+        getElement("backToLoginButton");
+
+    if (backToLoginButton) {
+
+        backToLoginButton.addEventListener(
+            "click",
+            showLoginPanel
+        );
+
+    }
+
+
+    /* ---------- LOGOUT ---------- */
+
+    const logoutButton =
+        getElement("logoutButton");
+
+    if (logoutButton) {
+
+        logoutButton.addEventListener(
+            "click",
+            signOutUser
+        );
+
+    }
+
+
+    /* ---------- COPY REFERRAL ---------- */
+
+    const copyReferralButton =
+        getElement("copyReferralButton");
+
+    if (copyReferralButton) {
+
+        copyReferralButton.addEventListener(
+            "click",
+            copyReferralLink
+        );
+
+    }
+
+
+    /* ---------- DASHBOARD: ROOMS ---------- */
+
+    const viewRoomsButton =
+        getElement("viewRoomsButton");
+
+    if (viewRoomsButton) {
+
+        viewRoomsButton.addEventListener(
+            "click",
+            openRoomsSection
+        );
+
+    }
+
+
+    /* ---------- DASHBOARD: MY BOOKINGS ---------- */
+
+    const viewBookingsButton =
+        getElement("viewBookingsButton");
+
+    if (viewBookingsButton) {
+
+        viewBookingsButton.addEventListener(
+            "click",
+            function () {
+
+                showSection("myBookingsSection");
+
+            }
+        );
+
+    }
+
+
+    /* ---------- DASHBOARD: WITHDRAW ---------- */
+
+    const withdrawButton =
+        getElement("withdrawButton");
+
+    if (withdrawButton) {
+
+        withdrawButton.addEventListener(
+            "click",
+            function () {
+
+                showSection("withdrawalSection");
+
+            }
+        );
+
+    }
+
+
+    /* ---------- DASHBOARD: REFERRAL ---------- */
+
+    const referralButton =
+        getElement("referralButton");
+
+    if (referralButton) {
+
+        referralButton.addEventListener(
+            "click",
+            function () {
+
+                showSection("referralSection");
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       BOTTOM NAVIGATION
+    ===================================================== */
+
+    const bottomHomeButton =
+        getElement("bottomHomeButton");
+
+    if (bottomHomeButton) {
+
+        bottomHomeButton.addEventListener(
+            "click",
+            function () {
+
+                showSection("dashboardSection");
+
+            }
+        );
+
+    }
+
+
+    const bottomRoomsButton =
+        getElement("bottomRoomsButton");
+
+    if (bottomRoomsButton) {
+
+        bottomRoomsButton.addEventListener(
+            "click",
+            openRoomsSection
+        );
+
+    }
+
+
+    const bottomBookingsButton =
+        getElement("bottomBookingsButton");
+
+    if (bottomBookingsButton) {
+
+        bottomBookingsButton.addEventListener(
+            "click",
+            function () {
+
+                showSection("myBookingsSection");
+
+            }
+        );
+
+    }
+
+
+    const bottomAccountButton =
+        getElement("bottomAccountButton");
+
+    if (bottomAccountButton) {
+
+        bottomAccountButton.addEventListener(
+            "click",
+            function () {
+
+                showSection("accountSection");
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       BACK BUTTONS
+    ===================================================== */
+
+    const backFromRoomsButton =
+        getElement("backFromRoomsButton");
+
+    if (backFromRoomsButton) {
+
+        backFromRoomsButton.addEventListener(
+            "click",
+            function () {
+
+                showSection("dashboardSection");
+
+            }
+        );
+
+    }
+
+
+    const backFromBookingsButton =
+        getElement("backFromBookingsButton");
+
+    if (backFromBookingsButton) {
+
+        backFromBookingsButton.addEventListener(
+            "click",
+            function () {
+
+                showSection("dashboardSection");
+
+            }
+        );
+
+    }
+
+
+    const backFromWithdrawalButton =
+        getElement("backFromWithdrawalButton");
+
+    if (backFromWithdrawalButton) {
+
+        backFromWithdrawalButton.addEventListener(
+            "click",
+            function () {
+
+                showSection("dashboardSection");
+
+            }
+        );
+
+    }
+
+
+    const backFromReferralButton =
+        getElement("backFromReferralButton");
+
+    if (backFromReferralButton) {
+
+        backFromReferralButton.addEventListener(
+            "click",
+            function () {
+
+                showSection("dashboardSection");
+
+            }
+        );
+
+    }
+
+
+    const backFromAccountButton =
+        getElement("backFromAccountButton");
+
+    if (backFromAccountButton) {
+
+        backFromAccountButton.addEventListener(
+            "click",
+            function () {
+
+                showSection("dashboardSection");
+
+            }
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   30. INITIALIZE ROOMRENT
+========================================================= */
+
+function initializeRoomRent() {
+
+    try {
+
+        console.log("RoomRent inaanza...");
+
+        bindEvents();
+
+        initializeAuthListener();
+
+        initializeRoomsSection();
+
+        loadReferralFromURL();
+
+        console.log(
+            "RoomRent imeanzishwa kikamilifu."
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Hitilafu wakati wa kuanzisha RoomRent:",
+            error
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   31. DOM READY
+========================================================= */
+
+if (document.readyState === "loading") {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        initializeRoomRent
     );
 
+} else {
 
-    initializeAuthListener();
+    initializeRoomRent();
+
+}
+
+/* =========================================================
+   32. SAVE BOOKING + PAYMENT PROOF TO FIRESTORE
+========================================================= */
+
+async function saveBookingPaymentProof(
+    room,
+    paymentMethod,
+    transactionId,
+    senderPhone
+) {
+
+    if (!currentUser) {
+        throw new Error(
+            "Mtumiaji hajaingia kwenye akaunti."
+        );
+    }
+
+    if (!room || !room.roomNumber) {
+        throw new Error(
+            "Room haijachaguliwa."
+        );
+    }
+
+    if (!paymentMethod) {
+        throw new Error(
+            "Njia ya malipo haijachaguliwa."
+        );
+    }
+
+    if (!transactionId) {
+        throw new Error(
+            "Transaction ID haijawekwa."
+        );
+    }
+
+    if (!senderPhone) {
+        throw new Error(
+            "Namba ya simu haijawekwa."
+        );
+    }
 
 
-    console.log(
+    /* -----------------------------------------------------
+       UNIQUE BOOKING NUMBER
+    ----------------------------------------------------- */
 
-        "RoomRent: Auth listener imewashwa."
+    const bookingNumber =
+        "RR-" +
+        Date.now().toString(36).toUpperCase() +
+        "-" +
+        Math.random()
+            .toString(36)
+            .substring(2, 7)
+            .toUpperCase();
 
+
+    /* -----------------------------------------------------
+       BOOKING DATA
+    ----------------------------------------------------- */
+
+    const bookingData = {
+
+        bookingNumber: bookingNumber,
+
+        userId: currentUser.uid,
+
+        userEmail:
+            currentUser.email || "",
+
+        userName:
+            currentUserData?.name || "",
+
+        userPhone:
+            currentUserData?.phone || "",
+
+
+        roomNumber:
+            room.roomNumber,
+
+        roomPrice:
+            Number(room.price) || 0,
+
+        durationDays:
+            ROOM_DURATION_DAYS,
+
+        profitRatePerDay:
+            ROOM_PROFIT_RATE_PER_DAY,
+
+        estimatedDailyProfit:
+            (Number(room.price) || 0) *
+            ROOM_PROFIT_RATE_PER_DAY,
+
+        estimatedTotalProfit:
+            (Number(room.price) || 0) *
+            ROOM_PROFIT_RATE_PER_DAY *
+            ROOM_DURATION_DAYS,
+
+
+        paymentMethod:
+            paymentMethod,
+
+        transactionId:
+            transactionId,
+
+        senderPhone:
+            senderPhone,
+
+
+        paymentStatus:
+            "pending",
+
+        bookingStatus:
+            "pending",
+
+
+        createdAt:
+            firebase.firestore.FieldValue.serverTimestamp(),
+
+        updatedAt:
+            firebase.firestore.FieldValue.serverTimestamp()
+
+    };
+
+
+    /* -----------------------------------------------------
+       SAVE TO FIRESTORE
+    ----------------------------------------------------- */
+
+    const bookingRef =
+        await db
+            .collection("bookings")
+            .add(bookingData);
+
+
+    return {
+
+        id: bookingRef.id,
+
+        bookingNumber: bookingNumber
+
+    };
+
+}
+
+
+/* =========================================================
+   33. UPDATED PAYMENT SUBMISSION
+========================================================= */
+
+async function submitPaymentProof() {
+
+    const transactionInput =
+        getElement("transactionIdInput");
+
+    const phoneInput =
+        getElement("senderPhoneInput");
+
+    const message =
+        getElement("paymentSubmissionMessage");
+
+    const submitButton =
+        getElement("submitPaymentProofButton");
+
+
+    const transactionId =
+        transactionInput
+            ? transactionInput.value.trim()
+            : "";
+
+    const senderPhone =
+        phoneInput
+            ? phoneInput.value.trim()
+            : "";
+
+
+    /* -----------------------------------------------------
+       VALIDATION
+    ----------------------------------------------------- */
+
+    if (!currentUser) {
+
+        if (message) {
+            setMessage(
+                "Tafadhali ingia kwenye akaunti yako kwanza.",
+                "error"
+            );
+        }
+
+        return;
+    }
+
+
+    if (!selectedRoom) {
+
+        if (message) {
+            setMessage(
+                "Tafadhali chagua room kwanza.",
+                "error"
+            );
+        }
+
+        return;
+    }
+
+
+    if (!selectedPaymentMethod) {
+
+        if (message) {
+            setMessage(
+                "Tafadhali chagua njia ya malipo.",
+                "error"
+            );
+        }
+
+        return;
+    }
+
+
+    if (!transactionId) {
+
+        if (message) {
+            setMessage(
+                "Tafadhali weka Transaction ID.",
+                "error"
+            );
+        }
+
+        if (transactionInput) {
+            transactionInput.focus();
+        }
+
+        return;
+    }
+
+
+    if (!senderPhone) {
+
+        if (message) {
+            setMessage(
+                "Tafadhali weka namba ya simu iliyotuma malipo.",
+                "error"
+            );
+        }
+
+        if (phoneInput) {
+            phoneInput.focus();
+        }
+
+        return;
+    }
+
+
+    /* -----------------------------------------------------
+       DISABLE BUTTON
+    ----------------------------------------------------- */
+
+    if (submitButton) {
+
+        submitButton.disabled = true;
+
+        submitButton.textContent =
+            "Inahifadhi...";
+
+    }
+
+
+    if (message) {
+
+        setMessage(
+            "Tafadhali subiri...",
+            "info"
+        );
+
+    }
+
+
+    try {
+
+        const result =
+            await saveBookingPaymentProof(
+                selectedRoom,
+                selectedPaymentMethod,
+                transactionId,
+                senderPhone
+            );
+
+
+        /* -------------------------------------------------
+           SUCCESS
+        ------------------------------------------------- */
+
+        if (message) {
+
+            setMessage(
+                "Booking yako imetumwa kikamilifu. Booking Number: " +
+                result.bookingNumber +
+                ". Subiri admin athibitishe malipo yako.",
+                "success"
+            );
+
+        }
+
+
+        if (submitButton) {
+
+            submitButton.disabled = true;
+
+            submitButton.textContent =
+                "Booking Imetumwa";
+
+        }
+
+
+        /*
+         * Baada ya kuhifadhi booking,
+         * tunampa user nafasi ya kurudi kwenye Rooms.
+         */
+
+        const bookingSection =
+            getElement("bookingSection");
+
+        if (bookingSection) {
+
+            const oldActions =
+                bookingSection.querySelector(
+                    ".booking-success-actions"
+                );
+
+            if (!oldActions) {
+
+                const actions =
+                    document.createElement("div");
+
+                actions.className =
+                    "booking-success-actions";
+
+                actions.innerHTML = `
+
+                    <button
+                        id="viewMyBookingsAfterPayment"
+                        class="primary-button"
+                        type="button"
+                    >
+                        Angalia Bookings Zangu
+                    </button>
+
+                    <button
+                        id="backToRoomsAfterPayment"
+                        class="secondary-button"
+                        type="button"
+                    >
+                        Rudi Rooms
+                    </button>
+
+                `;
+
+                bookingSection.appendChild(actions);
+
+
+                const viewBookingsButton =
+                    getElement(
+                        "viewMyBookingsAfterPayment"
+                    );
+
+                if (viewBookingsButton) {
+
+                    viewBookingsButton.addEventListener(
+                        "click",
+                        function () {
+
+                            showSection(
+                                "myBookingsSection"
+                            );
+
+                        }
+                    );
+
+                }
+
+
+                const backRoomsButton =
+                    getElement(
+                        "backToRoomsAfterPayment"
+                    );
+
+                if (backRoomsButton) {
+
+                    backRoomsButton.addEventListener(
+                        "click",
+                        openRoomsSection
+                    );
+
+                }
+
+            }
+
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Booking save error:",
+            error
+        );
+
+
+        if (message) {
+
+            setMessage(
+                "Booking haikuweza kuhifadhiwa. Tafadhali jaribu tena.",
+                "error"
+            );
+
+        }
+
+
+        if (submitButton) {
+
+            submitButton.disabled = false;
+
+            submitButton.textContent =
+                "Tuma Uthibitisho";
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   34. REPLACE PAYMENT SUBMISSION BUTTON
+========================================================= */
+
+function setupPaymentSubmissionButton() {
+
+    const submitButton =
+        getElement("submitPaymentProofButton");
+
+    if (!submitButton) {
+        return;
+    }
+
+    submitButton.onclick =
+        submitPaymentProof;
+
+}
+
+
+/* =========================================================
+   35. MY BOOKINGS
+========================================================= */
+
+async function loadMyBookings() {
+
+    const container =
+        getElement("myBookingsContent");
+
+    if (!container) {
+        return;
+    }
+
+
+    if (!currentUser) {
+
+        container.innerHTML = `
+            <p>
+                Tafadhali ingia kwenye akaunti yako
+                ili kuona bookings zako.
+            </p>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML = `
+        <p>Inapakia bookings...</p>
+    `;
+
+
+    try {
+
+        const snapshot =
+            await db
+                .collection("bookings")
+                .where(
+                    "userId",
+                    "==",
+                    currentUser.uid
+                )
+                .get();
+
+
+        if (snapshot.empty) {
+
+            container.innerHTML = `
+                <div class="empty-state">
+                    <h3>Hakuna Booking bado</h3>
+
+                    <p>
+                        Chagua room ili kuanza booking yako.
+                    </p>
+
+                    <button
+                        id="emptyBookingsRoomsButton"
+                        class="primary-button"
+                        type="button"
+                    >
+                        Angalia Rooms
+                    </button>
+                </div>
+            `;
+
+
+            const roomsButton =
+                getElement(
+                    "emptyBookingsRoomsButton"
+                );
+
+            if (roomsButton) {
+
+                roomsButton.addEventListener(
+                    "click",
+                    openRoomsSection
+                );
+
+            }
+
+            return;
+
+        }
+
+
+        let html = "";
+
+
+        snapshot.forEach(function(doc) {
+
+            const booking =
+                doc.data();
+
+
+            let createdDate =
+                "Inasubiri...";
+
+
+            if (
+                booking.createdAt &&
+                booking.createdAt.toDate
+            ) {
+
+                createdDate =
+                    booking.createdAt
+                        .toDate()
+                        .toLocaleString();
+
+            }
+
+
+            html += `
+
+                <div class="booking-card">
+
+                    <h3>
+                        Room ${booking.roomNumber}
+                    </h3>
+
+                    <p>
+                        <strong>
+                            Booking Number:
+                        </strong>
+                        ${booking.bookingNumber || "-"}
+                    </p>
+
+                    <p>
+                        <strong>
+                            Kiasi:
+                        </strong>
+                        ${formatMoney(
+                            booking.roomPrice || 0
+                        )}
+                    </p>
+
+                    <p>
+                        <strong>
+                            Malipo:
+                        </strong>
+                        ${booking.paymentMethod || "-"}
+                    </p>
+
+                    <p>
+                        <strong>
+                            Payment Status:
+                        </strong>
+                        ${booking.paymentStatus || "pending"}
+                    </p>
+
+                    <p>
+                        <strong>
+                            Booking Status:
+                        </strong>
+                        ${booking.bookingStatus || "pending"}
+                    </p>
+
+                    <p>
+                        <strong>
+                            Tarehe:
+                        </strong>
+                        ${createdDate}
+                    </p>
+
+                </div>
+
+            `;
+
+        });
+
+
+        container.innerHTML = html;
+
+
+    } catch (error) {
+
+        console.error(
+            "Load bookings error:",
+            error
+        );
+
+
+        container.innerHTML = `
+            <div class="error-state">
+                Imeshindikana kupakia bookings.
+                Tafadhali jaribu tena.
+            </div>
+        `;
+
+    }
+
+}
+
+
+/* =========================================================
+   36. OPEN MY BOOKINGS
+========================================================= */
+
+function openMyBookingsSection() {
+
+    showSection(
+        "myBookingsSection"
     );
 
+    loadMyBookings();
 
-    initializeRoomsSection();
-
-
-    loadReferralFromURL();
+}
 
 
-    console.log(
+/* =========================================================
+   37. UPDATE BOOKING NAVIGATION
+========================================================= */
 
-        "RoomRent: initialization imekamilika."
+function setupBookingsNavigation() {
 
+    const viewBookingsButton =
+        getElement("viewBookingsButton");
+
+    if (viewBookingsButton) {
+
+        viewBookingsButton.onclick =
+            openMyBookingsSection;
+
+    }
+
+
+    const bottomBookingsButton =
+        getElement("bottomBookingsButton");
+
+    if (bottomBookingsButton) {
+
+        bottomBookingsButton.onclick =
+            openMyBookingsSection;
+
+    }
+
+}
+
+/* =========================================================
+   38. FINAL EVENT SETUP
+========================================================= */
+
+function setupFinalEvents() {
+
+    /*
+     * MY BOOKINGS
+     */
+
+    setupBookingsNavigation();
+
+
+    /*
+     * PAYMENT SUBMISSION
+     *
+     * Kwa sababu payment form inatengenezwa
+     * dynamically, tunatumia event delegation.
+     */
+
+    document.addEventListener(
+        "click",
+        function (event) {
+
+            if (
+                event.target &&
+                event.target.id ===
+                "submitPaymentProofButton"
+            ) {
+
+                submitPaymentProof();
+
+            }
+
+        }
     );
 
 }
 
 
 /* =========================================================
-   29. START AFTER DOM IS READY
+   39. FINAL INITIALIZATION
 ========================================================= */
 
-console.log(
-    "ROOMRENT SCRIPT IMELOADED"
-);
+function startFinalRoomRentFeatures() {
+
+    try {
+
+        setupFinalEvents();
+
+        console.log(
+            "RoomRent features zimeunganishwa."
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Final features initialization error:",
+            error
+        );
+
+    }
+
+}
 
 
-if (
-    document.readyState ===
-    "loading"
-) {
+/* =========================================================
+   40. START FINAL FEATURES
+========================================================= */
+
+if (document.readyState === "loading") {
 
     document.addEventListener(
-
         "DOMContentLoaded",
-
-        function() {
-
-            console.log(
-                "ROOMRENT DOM READY"
-            );
-
-
-            initializeRoomRent();
-
-        },
-
-        {
-            once: true
-        }
-
+        startFinalRoomRentFeatures
     );
+
+} else {
+
+    startFinalRoomRentFeatures();
 
 }
 
 
-else {
+/* =========================================================
+   41. ROOMRENT TEST CHECK
+========================================================= */
+
+function roomRentSystemTest() {
 
     console.log(
-        "ROOMRENT DOM ALREADY READY"
+        "===================================="
+    );
+
+    console.log(
+        "ROOMRENT SYSTEM TEST"
+    );
+
+    console.log(
+        "===================================="
     );
 
 
-    initializeRoomRent();
+    /* Firebase */
+
+    console.log(
+        "Firebase:",
+        typeof firebase !== "undefined"
+            ? "OK"
+            : "ERROR"
+    );
+
+
+    /* Auth */
+
+    console.log(
+        "Firebase Auth:",
+        auth
+            ? "OK"
+            : "ERROR"
+    );
+
+
+    /* Firestore */
+
+    console.log(
+        "Firestore:",
+        db
+            ? "OK"
+            : "ERROR"
+    );
+
+
+    /* Rooms */
+
+    console.log(
+        "Rooms:",
+        Array.isArray(ROOM_DATA) &&
+        ROOM_DATA.length > 0
+            ? ROOM_DATA.length + " rooms OK"
+            : "ERROR"
+    );
+
+
+    /* Current user */
+
+    console.log(
+        "Current user:",
+        currentUser
+            ? currentUser.email
+            : "No user logged in"
+    );
+
+
+    /* User data */
+
+    console.log(
+        "User data:",
+        currentUserData
+            ? "OK"
+            : "Not loaded"
+    );
+
+
+    /* Selected room */
+
+    console.log(
+        "Selected room:",
+        selectedRoom
+            ? selectedRoom.roomNumber
+            : "None"
+    );
+
+
+    /* Payment method */
+
+    console.log(
+        "Payment method:",
+        selectedPaymentMethod
+            ? selectedPaymentMethod
+            : "None"
+    );
+
+
+    console.log(
+        "===================================="
+    );
+
+    console.log(
+        "ROOMRENT TEST IMEKAMILIKA"
+    );
+
+    console.log(
+        "===================================="
+    );
 
 }
+
+
+/* =========================================================
+   42. EXPOSE TEST FUNCTION
+========================================================= */
+
+window.roomRentSystemTest =
+    roomRentSystemTest;
