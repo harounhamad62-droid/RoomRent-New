@@ -118,8 +118,6 @@
                     novalidate
                 >
 
-                    <!-- EMAIL -->
-
                     <div class="form-group">
 
                         <label for="signInEmail">
@@ -137,8 +135,6 @@
 
                     </div>
 
-
-                    <!-- PASSWORD -->
 
                     <div class="form-group">
 
@@ -158,16 +154,12 @@
                     </div>
 
 
-                    <!-- MESSAGE -->
-
                     <div
                         id="signInMessage"
                         class="form-message"
                         aria-live="polite"
                     ></div>
 
-
-                    <!-- LOGIN BUTTON -->
 
                     <button
                         type="submit"
@@ -179,8 +171,6 @@
 
                 </form>
 
-
-                <!-- FORGOT PASSWORD -->
 
                 <button
                     type="button"
@@ -195,8 +185,6 @@
                     <span>au</span>
                 </div>
 
-
-                <!-- CREATE ACCOUNT -->
 
                 <button
                     type="button"
@@ -313,8 +301,6 @@
                     novalidate
                 >
 
-                    <!-- NAME -->
-
                     <div class="form-group">
 
                         <label for="signUpName">
@@ -332,8 +318,6 @@
 
                     </div>
 
-
-                    <!-- PHONE -->
 
                     <div class="form-group">
 
@@ -353,8 +337,6 @@
                     </div>
 
 
-                    <!-- EMAIL -->
-
                     <div class="form-group">
 
                         <label for="signUpEmail">
@@ -372,8 +354,6 @@
 
                     </div>
 
-
-                    <!-- PASSWORD -->
 
                     <div class="form-group">
 
@@ -393,8 +373,6 @@
 
                     </div>
 
-
-                    <!-- REFERRAL -->
 
                     <div class="form-group">
 
@@ -416,16 +394,12 @@
                     </div>
 
 
-                    <!-- MESSAGE -->
-
                     <div
                         id="signUpMessage"
                         class="form-message"
                         aria-live="polite"
                     ></div>
 
-
-                    <!-- SIGN UP -->
 
                     <button
                         type="submit"
@@ -1258,43 +1232,97 @@
                     class="admin-content"
                 >
 
+                    <!-- =================================================
+                         ADMIN BOOKING MANAGEMENT
+                    ================================================== -->
+
                     <div class="info-card">
 
                         <h3>
-                            Room Management
+                            🧾 Booking Management
                         </h3>
 
                         <p>
-                            Admin ataweza kusimamia rooms,
-                            bei, picha na taarifa za bookings.
+                            Angalia bookings zote za customers
+                            na thibitisha au kataa malipo.
+                        </p>
+
+                        <button
+                            type="button"
+                            id="adminBookingsButton"
+                            class="primary-button"
+                        >
+                            Angalia Bookings
+                        </button>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         ADMIN BOOKINGS LIST
+                    ================================================== -->
+
+                    <div
+                        id="adminBookingsPanel"
+                        style="display: none;"
+                    >
+
+                        <div class="section-header">
+
+                            <div>
+
+                                <h3>
+                                    Bookings za Customers
+                                </h3>
+
+                                <p>
+                                    Malipo yanayosubiri uthibitisho
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            id="adminBookingsList"
+                            class="bookings-list"
+                        ></div>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         ROOM MANAGEMENT
+                    ================================================== -->
+
+                    <div class="info-card">
+
+                        <h3>
+                            🏠 Room Management
+                        </h3>
+
+                        <p>
+                            Usimamizi wa rooms, bei na picha
+                            utaongezwa kwenye hatua inayofuata.
                         </p>
 
                     </div>
 
 
-                    <div class="info-card">
-
-                        <h3>
-                            Payment Management
-                        </h3>
-
-                        <p>
-                            Admin ataweza kuthibitisha
-                            malipo ya customers.
-                        </p>
-
-                    </div>
-
+                    <!-- =================================================
+                         WITHDRAWAL MANAGEMENT
+                    ================================================== -->
 
                     <div class="info-card">
 
                         <h3>
-                            Withdrawal Management
+                            💰 Withdrawal Management
                         </h3>
 
                         <p>
-                            Admin ataweza kusimamia
-                            withdrawal requests.
+                            Usimamizi wa withdrawal requests
+                            utaongezwa baada ya booking management.
                         </p>
 
                     </div>
@@ -1435,4 +1463,5 @@
     ></script>
 
 </body>
-  </html>
+                            </html>
+                            
