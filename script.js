@@ -3151,7 +3151,6 @@ async function showPaymentSubmission(
 
 }
 
-
 /* =========================================================
    25F. CREATE PENDING BOOKING
 ========================================================= */
@@ -3184,11 +3183,19 @@ async function createPendingBooking(
 
     if (!selectedRoom) {
 
+        alert(
+            "Chumba hakijapatikana."
+        );
+
         return;
     }
 
 
     try {
+
+        /* -------------------------------------------------
+           BUTTON STATE
+        ------------------------------------------------- */
 
         if (submitButton) {
 
@@ -3201,69 +3208,9 @@ async function createPendingBooking(
         }
 
 
-        /*
-         * -------------------------------------------------
-         * CHECK BOOKING LIMIT
-         * -------------------------------------------------
-         *
-         * Hii ni preliminary client-side check.
-         * Security Rules / backend itaimarishwa
-         * baadaye kwa mfumo wa production.
-         */
-
-        const existingBookingsSnapshot =
-            await db
-                .collection("bookings")
-                .where(
-                    "userId",
-                    "==",
-                    currentUser.uid
-                )
-                .where(
-                    "roomNumber",
-                    "==",
-                    selectedRoom.roomNumber
-                )
-                .get();
-
-
-        const bookingCount =
-            existingBookingsSnapshot.size;
-
-
-        if (
-            bookingCount >=
-            selectedRoom.maxBookingsPerUser
-        ) {
-
-            alert(
-
-                "Umefikia kikomo cha bookings za Chumba " +
-                selectedRoom.roomNumber +
-                " kwa akaunti yako."
-
-            );
-
-
-            if (submitButton) {
-
-                submitButton.disabled =
-                    false;
-
-                submitButton.textContent =
-                    "Wasilisha Uthibitisho wa Malipo";
-
-            }
-
-
-            return;
-
-        }
-
-
-        /* =================================================
+        /* -------------------------------------------------
            GENERATE UNIQUE BOOKING NUMBER
-        ================================================= */
+        ------------------------------------------------- */
 
         const timestamp =
             Date.now();
@@ -3286,9 +3233,9 @@ async function createPendingBooking(
             randomPart;
 
 
-        /* =================================================
+        /* -------------------------------------------------
            CALCULATE PROFIT
-        ================================================= */
+        ------------------------------------------------- */
 
         const dailyProfit =
             selectedRoom.price *
@@ -3300,9 +3247,9 @@ async function createPendingBooking(
             ROOM_DURATION_DAYS;
 
 
-        /* =================================================
+        /* -------------------------------------------------
            BOOKING DATA
-        ================================================= */
+        ------------------------------------------------- */
 
         const bookingData = {
 
@@ -3377,9 +3324,15 @@ async function createPendingBooking(
         };
 
 
-        /* =================================================
-           SAVE TO FIRESTORE
-        ================================================= */
+        console.log(
+            "RoomRent: Inatuma booking Firestore...",
+            bookingData
+        );
+
+
+        /* -------------------------------------------------
+           SAVE BOOKING
+        ------------------------------------------------- */
 
         const bookingReference =
             await db
@@ -3395,27 +3348,87 @@ async function createPendingBooking(
         );
 
 
-        /* =================================================
-           SUCCESS SCREEN
-        ================================================= */
+        /* -------------------------------------------------
+           SUCCESS
+        ------------------------------------------------- */
 
         bookingContentAfterSubmission(
+
             bookingNumber,
+
             selectedRoom,
+
             paymentMethod
+
         );
 
 
     } catch (error) {
 
         console.error(
-            "RoomRent: Booking creation error:",
+            "ROOMRENT FIRESTORE ERROR:",
             error
         );
 
 
+        /* -------------------------------------------------
+           SHOW REAL FIREBASE ERROR
+        ------------------------------------------------- */
+
+        let errorMessage =
+            "Imeshindikana kuhifadhi booking.";
+
+
+        if (
+            error &&
+            error.code ===
+            "permission-denied"
+        ) {
+
+            errorMessage =
+                "Firebase imezuia kuhifadhi booking. Firestore Rules zinahitaji kurekebishwa.";
+
+        }
+
+
+        else if (
+            error &&
+            error.code ===
+            "unauthenticated"
+        ) {
+
+            errorMessage =
+                "Session yako ya Firebase imekwisha. Tafadhali login tena.";
+
+        }
+
+
+        else if (
+            error &&
+            error.code ===
+            "failed-precondition"
+        ) {
+
+            errorMessage =
+                "Firestore ina hitaji la ziada. Angalia Firestore configuration/index.";
+
+        }
+
+
+        else if (
+            error &&
+            error.message
+        ) {
+
+            errorMessage =
+                "Firebase Error: " +
+                error.message;
+
+        }
+
+
         alert(
-            "Imeshindikana kuhifadhi booking. Tafadhali jaribu tena."
+            errorMessage
         );
 
 
@@ -3431,8 +3444,8 @@ async function createPendingBooking(
 
     }
 
-}
-
+           }
+        
 
 /* =========================================================
    25G. BOOKING SUCCESS SCREEN
