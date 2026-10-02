@@ -4143,16 +4143,39 @@ function funguaAdminDashboard() {
 
 }
 
-
 /* =========================================================
-30.2 ADMIN BOOKINGS
+30.2 ADMIN BOOKINGS - ADMIN ONLY
 ========================================================= */
 
 async function anzishaAdminBookingsListener() {
 
-    if (!requireAdmin()) {
+    /* -----------------------------------------------------
+       ADMIN SECURITY CHECK
+    ----------------------------------------------------- */
+
+    if (!currentUser) {
+
+        alert(
+            "Tafadhali ingia kwenye akaunti yako kwanza."
+        );
+
         return;
     }
+
+
+    if (currentUser.uid !== ADMIN_UID) {
+
+        console.warn(
+            "RoomRent Security: Customer alijaribu kufungua Admin Bookings."
+        );
+
+        alert(
+            "Huna ruhusa ya kuangalia bookings za Admin."
+        );
+
+        return;
+    }
+
 
     if (!db) {
 
@@ -4163,12 +4186,24 @@ async function anzishaAdminBookingsListener() {
         return;
     }
 
+
+    /* -----------------------------------------------------
+       ADMIN CONTENT
+    ----------------------------------------------------- */
+
     const content =
         getElement("adminContent");
 
+
     if (!content) {
+
+        console.error(
+            "RoomRent: adminContent haipo."
+        );
+
         return;
     }
+
 
     content.innerHTML = `
 
@@ -4186,19 +4221,28 @@ async function anzishaAdminBookingsListener() {
 
     `;
 
+
     const list =
         getElement(
             "adminBookingsList"
         );
 
+
     try {
+
+        /* -------------------------------------------------
+           READ BOOKINGS
+           Firestore Rules zitaruhusu ADMIN pekee.
+        ------------------------------------------------- */
 
         const snapshot =
             await db
                 .collection("bookings")
                 .get();
 
+
         const bookings = [];
+
 
         snapshot.forEach(
             function(doc) {
@@ -4215,6 +4259,10 @@ async function anzishaAdminBookingsListener() {
         );
 
 
+        /* -------------------------------------------------
+           SORT - MPYA KWANZA
+        ------------------------------------------------- */
+
         bookings.sort(
             function(a, b) {
 
@@ -4225,6 +4273,7 @@ async function anzishaAdminBookingsListener() {
                         ? a.createdAt.toMillis()
                         : 0;
 
+
                 const timeB =
                     b.createdAt &&
                     typeof b.createdAt.toMillis ===
@@ -4232,11 +4281,16 @@ async function anzishaAdminBookingsListener() {
                         ? b.createdAt.toMillis()
                         : 0;
 
+
                 return timeB - timeA;
 
             }
         );
 
+
+        /* -------------------------------------------------
+           HAKUNA BOOKING
+        ------------------------------------------------- */
 
         if (!bookings.length) {
 
@@ -4261,6 +4315,10 @@ async function anzishaAdminBookingsListener() {
         }
 
 
+        /* -------------------------------------------------
+           BOOKING LIST
+        ------------------------------------------------- */
+
         let html = `
 
             <div class="admin-bookings-wrapper">
@@ -4280,32 +4338,39 @@ async function anzishaAdminBookingsListener() {
 
                 html += `
 
-                    <div class="admin-booking-card">
+                    <div
+                        class="admin-booking-card"
+                    >
 
                         <h3>
                             📋 Booking
                             ${booking.bookingNumber || "-"}
                         </h3>
 
+
                         <p>
                             <strong>Mteja:</strong>
                             ${booking.customerName || "-"}
                         </p>
+
 
                         <p>
                             <strong>Simu:</strong>
                             ${booking.customerPhone || "-"}
                         </p>
 
+
                         <p>
                             <strong>Email:</strong>
                             ${booking.customerEmail || "-"}
                         </p>
 
+
                         <p>
                             <strong>Chumba:</strong>
                             ${booking.roomNumber || "-"}
                         </p>
+
 
                         <p>
                             <strong>Bei:</strong>
@@ -4316,34 +4381,60 @@ async function anzishaAdminBookingsListener() {
                             )}
                         </p>
 
+
+                        <p>
+                            <strong>Muda:</strong>
+                            ${
+                                booking.durationDays ||
+                                ROOM_DURATION_DAYS
+                            }
+                            siku
+                        </p>
+
+
+                        <p>
+                            <strong>Faida kwa siku:</strong>
+                            ${formatMoney(
+                                booking.dailyProfit || 0
+                            )}
+                        </p>
+
+
                         <p>
                             <strong>Njia ya malipo:</strong>
                             ${booking.paymentMethod || "-"}
                         </p>
+
 
                         <p>
                             <strong>Payment Status:</strong>
                             ${booking.paymentStatus || "-"}
                         </p>
 
+
                         <p>
                             <strong>Booking Status:</strong>
                             ${booking.bookingStatus || "-"}
                         </p>
+
 
                         <p>
                             <strong>Profit Status:</strong>
                             ${booking.profitStatus || "-"}
                         </p>
 
+
                         <p>
                             <strong>Admin Confirmed:</strong>
+
                             ${
                                 booking.adminConfirmed
                                     ? "NDIYO"
                                     : "HAPANA"
                             }
+
                         </p>
+
 
                     </div>
 
@@ -4367,20 +4458,38 @@ async function anzishaAdminBookingsListener() {
     } catch (error) {
 
         console.error(
-            "Admin bookings error:",
+            "RoomRent Admin Bookings Error:",
             error
         );
+
+
+        let message =
+            "Imeshindikana kupakia bookings.";
+
+
+        if (
+            error &&
+            error.code ===
+            "permission-denied"
+        ) {
+
+            message =
+                "Huna ruhusa ya kuona bookings hizi.";
+
+        }
+
 
         list.innerHTML = `
 
             <div class="empty-state">
 
                 <h3>
-                    ❌ Imeshindikana kupakia bookings.
+                    ❌ ${message}
                 </h3>
 
                 <p>
-                    ${error.message || ""}
+                    Mfumo wa usalama wa Admin
+                    umezuia ombi hili.
                 </p>
 
             </div>
@@ -4388,10 +4497,9 @@ async function anzishaAdminBookingsListener() {
         `;
 
     }
-
-}
-
-
+  
+                            
+            
 /* =========================================================
 30.3 EXPOSE ADMIN FUNCTIONS
 ========================================================= */
