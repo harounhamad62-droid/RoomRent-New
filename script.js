@@ -4018,24 +4018,22 @@ adminSection.innerHTML = `
 `;  
 
 
-const bookingsButton =  
-    getElement(  
-        "adminBookingsBtn"  
-    );  
+const bookingsButton =
+    getElement("adminBookingsBtn");
 
-if (bookingsButton) {  
+if (bookingsButton) {
 
-    bookingsButton.addEventListener(  
-        "click",  
-        function() {  
+    bookingsButton.onclick = function() {
 
-            anzishaAdminBookingsListener();  
+        console.log(
+            "RoomRent Admin: Angalia Bookings imebonyezwa."
+        );
 
-        }  
-    );  
+        anzishaAdminBookingsListener();
 
-}  
+    };
 
+}
 
 const refreshButton =  
     getElement(  
