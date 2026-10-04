@@ -3970,12 +3970,13 @@ function funguaAdminDashboard() {
             <div class="admin-menu">
 
                 <button
-                    type="button"
-                    id="adminBookingsBtn">
+    type="button"
+    id="adminBookingsBtn"
+    onclick="alert('BUTTON YA BOOKINGS INAFANYA KAZI')">
 
-                    📋 Angalia Bookings
+    📋 Angalia Bookings
 
-                </button>
+</button>
 
                 <button
                     type="button"
