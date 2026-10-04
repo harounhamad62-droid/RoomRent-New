@@ -4273,12 +4273,11 @@ function funguaAdminDashboard() {
 
 }
 
-                        
 /* =========================================================
-   30.2 ADMIN BOOKINGS LISTENER
+30.2 ADMIN BOOKINGS
 ========================================================= */
 
-function anzishaAdminBookingsListener() {
+async function anzishaAdminBookingsListener() {
 
     if (!requireAdmin()) {
         return;
@@ -4294,37 +4293,16 @@ function anzishaAdminBookingsListener() {
     }
 
     const content =
-        document.getElementById(
-            "adminContent"
-        );
+        getElement("adminContent");
 
     if (!content) {
 
-        alert(
-            "adminContent haipo kwenye HTML."
+        console.error(
+            "RoomRent Admin: adminContent haipo."
         );
 
         return;
     }
-
-    /*
-     * SIMAMISHA LISTENER YA ZAMANI
-     */
-
-    if (
-        typeof unsubscribeAdminBookings ===
-        "function"
-    ) {
-
-        unsubscribeAdminBookings();
-
-        unsubscribeAdminBookings =
-            null;
-    }
-
-    /*
-     * ONYESHA LOADING
-     */
 
     content.innerHTML = `
 
@@ -4342,151 +4320,219 @@ function anzishaAdminBookingsListener() {
 
     `;
 
-    /*
-     * FIRESTORE REAL-TIME LISTENER
-     */
+    try {
 
-    unsubscribeAdminBookings =
-        db
-            .collection("bookings")
-            .onSnapshot(
+        console.log(
+            "RoomRent Admin: Inatafuta bookings Firestore..."
+        );
 
-                function(snapshot) {
+        const snapshot =
+            await db
+                .collection("bookings")
+                .get();
 
-                    console.log(
-                        "RoomRent Admin: Bookings zimepatikana:",
-                        snapshot.size
-                    );
+        console.log(
+            "RoomRent Admin: Bookings zimepatikana:",
+            snapshot.size
+        );
 
-                    const bookings = [];
+        if (snapshot.empty) {
 
-                    snapshot.forEach(
-                        function(doc) {
+            content.innerHTML = `
 
-                            bookings.push({
+                <div class="admin-bookings-section">
 
-                                id:
-                                    doc.id,
+                    <h3>
+                        📋 Bookings za Wateja
+                    </h3>
 
-                                ...doc.data()
+                    <div class="empty-state">
 
-                            });
+                        <h3>
+                            📭 Hakuna booking bado.
+                        </h3>
 
-                        }
-                    );
+                        <p>
+                            Hakuna booking iliyopokelewa
+                            kwenye mfumo.
+                        </p>
 
-                    /*
-                     * PANGA MPYA KWANZA
-                     */
+                    </div>
 
-                    bookings.sort(
-                        function(a, b) {
+                </div>
 
-                            const timeA =
-                                a.createdAt &&
-                                typeof
-                                a.createdAt.toMillis ===
-                                "function"
-                                    ? a.createdAt.toMillis()
-                                    : 0;
+            `;
 
-                            const timeB =
-                                b.createdAt &&
-                                typeof
-                                b.createdAt.toMillis ===
-                                "function"
-                                    ? b.createdAt.toMillis()
-                                    : 0;
+            return;
+        }
 
-                            return timeB - timeA;
+        const bookings = [];
 
-                        }
-                    );
+        snapshot.forEach(
+            function(doc) {
 
-                    /*
-                     * ONYESHA BOOKINGS
-                     */
+                bookings.push({
 
-                    onyeshaAdminBookings(
-                        bookings
-                    );
+                    id: doc.id,
 
-                },
+                    ...doc.data()
 
-                function(error) {
+                });
 
-                    console.error(
-                        "RoomRent Admin Bookings Firestore Error:",
-                        error
-                    );
+            }
+        );
 
-                    const list =
-                        document.getElementById(
-                            "adminBookingsList"
-                        );
+        bookings.sort(
+            function(a, b) {
 
-                    if (list) {
+                const timeA =
+                    a.createdAt &&
+                    typeof a.createdAt.toMillis ===
+                    "function"
+                        ? a.createdAt.toMillis()
+                        : 0;
 
-                        let message =
-                            "Imeshindikana kupakia bookings.";
+                const timeB =
+                    b.createdAt &&
+                    typeof b.createdAt.toMillis ===
+                    "function"
+                        ? b.createdAt.toMillis()
+                        : 0;
 
-                        if (
-                            error &&
-                            error.code ===
-                            "permission-denied"
-                        ) {
+                return timeB - timeA;
 
-                            message =
-                                "Huna ruhusa ya kusoma bookings. Hakikisha Admin UID na Firestore Rules ziko sahihi.";
+            }
+        );
 
-                        }
+        let html = `
 
-                        else if (
-                            error &&
-                            error.code ===
-                            "unauthenticated"
-                        ) {
+            <div class="admin-bookings-section">
 
-                            message =
-                                "Session ya Firebase imekwisha. Tafadhali login tena.";
+                <h3>
+                    📋 Bookings za Wateja
+                </h3>
 
-                        }
+                <p>
+                    Jumla ya bookings:
+                    <strong>
+                        ${bookings.length}
+                    </strong>
+                </p>
 
-                        else if (
-                            error &&
-                            error.message
-                        ) {
+        `;
 
-                            message =
-                                "Firebase Error: " +
-                                error.message;
+        bookings.forEach(
+            function(booking) {
 
-                        }
+                html += `
 
-                        list.innerHTML = `
+                    <div class="admin-booking-card">
 
-                            <div class="empty-state">
+                        <h3>
+                            📋 Booking
+                            ${booking.bookingNumber || "-"}
+                        </h3>
 
-                                <h3>
-                                    ❌ ${message}
-                                </h3>
+                        <p>
+                            <strong>Mteja:</strong>
+                            ${booking.customerName || "-"}
+                        </p>
 
-                                <p>
-                                    Angalia Console kama kuna
-                                    taarifa zaidi.
-                                </p>
+                        <p>
+                            <strong>Simu:</strong>
+                            ${booking.customerPhone || "-"}
+                        </p>
 
-                            </div>
+                        <p>
+                            <strong>Email:</strong>
+                            ${booking.customerEmail || "-"}
+                        </p>
 
-                        `;
+                        <p>
+                            <strong>Chumba:</strong>
+                            ${booking.roomNumber || "-"}
+                        </p>
 
-                    }
+                        <p>
+                            <strong>Bei:</strong>
+                            ${formatMoney(
+                                booking.roomPrice ||
+                                booking.paymentAmount ||
+                                0
+                            )}
+                        </p>
 
-                }
+                        <p>
+                            <strong>Njia ya malipo:</strong>
+                            ${booking.paymentMethod || "-"}
+                        </p>
 
-            );
+                        <p>
+                            <strong>Payment Status:</strong>
+                            ${booking.paymentStatus || "-"}
+                        </p>
 
-                                }
+                        <p>
+                            <strong>Booking Status:</strong>
+                            ${booking.bookingStatus || "-"}
+                        </p>
+
+                        <p>
+                            <strong>Profit Status:</strong>
+                            ${booking.profitStatus || "-"}
+                        </p>
+
+                        <p>
+                            <strong>Admin Confirmed:</strong>
+                            ${
+                                booking.adminConfirmed
+                                    ? "NDIYO"
+                                    : "HAPANA"
+                            }
+                        </p>
+
+                    </div>
+
+                `;
+
+            }
+        );
+
+        html += `
+
+            </div>
+
+        `;
+
+        content.innerHTML =
+            html;
+
+    } catch (error) {
+
+        console.error(
+            "RoomRent Admin bookings error:",
+            error
+        );
+
+        content.innerHTML = `
+
+            <div class="empty-state">
+
+                <h3>
+                    ❌ Imeshindikana kupakia bookings.
+                </h3>
+
+                <p>
+                    ${error.message || ""}
+                </p>
+
+            </div>
+
+        `;
+
+    }
+
+}                                                                                            
             
 
 
