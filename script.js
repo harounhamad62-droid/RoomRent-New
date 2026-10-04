@@ -4139,6 +4139,7 @@ return true;
 /* =========================================================
 30.1 OPEN ADMIN DASHBOARD
 ========================================================= */
+
 function funguaAdminDashboard() {
 
     if (!requireAdmin()) {
@@ -4174,13 +4175,12 @@ function funguaAdminDashboard() {
             <div class="admin-menu">
 
                 <button
-    type="button"
-    id="adminBookingsBtn"
-    onclick="alert('BUTTON YA BOOKINGS INAFANYA KAZI')">
+                    type="button"
+                    id="adminBookingsBtn">
 
-    📋 Angalia Bookings
+                    📋 Angalia Bookings
 
-</button>
+                </button>
 
                 <button
                     type="button"
@@ -4213,20 +4213,23 @@ function funguaAdminDashboard() {
 
     `;
 
-    /*
-     * TUNATUMIA EVENT DELEGATION
-     * ili button ya dynamic isigome.
-     */
 
-    adminSection.onclick =
-        function(event) {
+    /* =====================================================
+       ADMIN BOOKINGS BUTTON
+    ===================================================== */
 
-            const bookingsButton =
-                event.target.closest(
-                    "#adminBookingsBtn"
-                );
+    const bookingsBtn =
+        document.getElementById(
+            "adminBookingsBtn"
+        );
 
-            if (bookingsButton) {
+    if (bookingsBtn) {
+
+        bookingsBtn.addEventListener(
+            "click",
+            function(event) {
+
+                event.preventDefault();
 
                 console.log(
                     "RoomRent Admin: Angalia Bookings imebonyezwa."
@@ -4234,15 +4237,28 @@ function funguaAdminDashboard() {
 
                 anzishaAdminBookingsListener();
 
-                return;
             }
+        );
 
-            const refreshButton =
-                event.target.closest(
-                    "#adminRefreshBtn"
-                );
+    }
 
-            if (refreshButton) {
+
+    /* =====================================================
+       ADMIN REFRESH BUTTON
+    ===================================================== */
+
+    const refreshBtn =
+        document.getElementById(
+            "adminRefreshBtn"
+        );
+
+    if (refreshBtn) {
+
+        refreshBtn.addEventListener(
+            "click",
+            function(event) {
+
+                event.preventDefault();
 
                 console.log(
                     "RoomRent Admin: Refresh imebonyezwa."
@@ -4250,10 +4266,10 @@ function funguaAdminDashboard() {
 
                 funguaAdminDashboard();
 
-                return;
             }
+        );
 
-        };
+    }
 
 }
 
