@@ -1329,13 +1329,200 @@ currentUserData.referralCode ||
 
 if (linkElement) {
 
-linkElement.textContent =
-currentUserData.referralLink ||
-"";
+    linkElement.value =
+        currentUserData.referralLink ||
+        "";
+
+    }
 
 }
 
-}
+/* =========================================================
+16B. LOAD MY BOOKINGS
+========================================================= */
+
+async function loadMyBookings() {
+
+    const list =
+        getElement("myBookingsList");
+
+    if (!list) {
+        console.error(
+            "RoomRent: myBookingsList haipo."
+        );
+        return;
+    }
+
+    if (!currentUser) {
+
+        list.innerHTML = `
+            <div class="empty-state">
+                <h3>🔐 Tafadhali ingia kwanza.</h3>
+            </div>
+        `;
+
+        return;
+    }
+
+    if (!db) {
+
+        list.innerHTML = `
+            <div class="empty-state">
+                <h3>❌ Firestore haijaandaliwa.</h3>
+            </div>
+        `;
+
+        return;
+    }
+
+    list.innerHTML = `
+        <div class="empty-state">
+            <p>⏳ Inapakia bookings zako...</p>
+        </div>
+    `;
+
+    try {
+
+        const snapshot =
+            await db
+                .collection("bookings")
+                .where(
+                    "userId",
+                    "==",
+                    currentUser.uid
+                )
+                .get();
+
+        if (snapshot.empty) {
+
+            list.innerHTML = `
+                <div class="empty-state">
+
+                    <h3>
+                        📭 Hakuna booking bado.
+                    </h3>
+
+                    <p>
+                        Bookings zako zitaonekana hapa
+                        baada ya kufanya booking.
+                    </p>
+
+                </div>
+            `;
+
+            return;
+        }
+
+        const bookings = [];
+
+        snapshot.forEach(function(doc) {
+
+            bookings.push({
+                id: doc.id,
+                ...doc.data()
+            });
+
+        });
+
+        bookings.sort(function(a, b) {
+
+            const timeA =
+                a.createdAt &&
+                typeof a.createdAt.toMillis === "function"
+                    ? a.createdAt.toMillis()
+                    : 0;
+
+            const timeB =
+                b.createdAt &&
+                typeof b.createdAt.toMillis === "function"
+                    ? b.createdAt.toMillis()
+                    : 0;
+
+            return timeB - timeA;
+
+        });
+
+        let html = "";
+
+        bookings.forEach(function(booking) {
+
+            html += `
+
+                <div class="booking-card">
+
+                    <h3>
+                        📋
+                        ${booking.bookingNumber || "-"}
+                    </h3>
+
+                    <p>
+                        <strong>Chumba:</strong>
+                        ${booking.roomNumber || "-"}
+                    </p>
+
+                    <p>
+                        <strong>Bei:</strong>
+                        ${formatMoney(
+                            booking.roomPrice ||
+                            booking.paymentAmount ||
+                            0
+                        )}
+                    </p>
+
+                    <p>
+                        <strong>Njia ya malipo:</strong>
+                        ${booking.paymentMethod || "-"}
+                    </p>
+
+                    <p>
+                        <strong>Hali ya malipo:</strong>
+                        ${booking.paymentStatus || "-"}
+                    </p>
+
+                    <p>
+                        <strong>Hali ya booking:</strong>
+                        ${booking.bookingStatus || "-"}
+                    </p>
+
+                    <p>
+                        <strong>Profit:</strong>
+                        ${booking.profitStatus || "-"}
+                    </p>
+
+                </div>
+
+            `;
+
+        });
+
+        list.innerHTML = html;
+
+    } catch (error) {
+
+        console.error(
+            "RoomRent: My bookings error:",
+            error
+        );
+
+        list.innerHTML = `
+
+            <div class="empty-state">
+
+                <h3>
+                    ❌ Imeshindikana kupakia bookings.
+                </h3>
+
+                <p>
+                    ${error.message || ""}
+                </p>
+
+            </div>
+
+        `;
+
+    }
+
+    }
 
 /* =========================================================
 17. FORMAT MONEY
@@ -3582,27 +3769,24 @@ function() {
 }
 
 const myBookingsButton =
-getElement(
-"myBookingsButton"
-);
+    getElement("myBookingsButton");
 
 if (myBookingsButton) {
 
-myBookingsButton.addEventListener(
+    myBookingsButton.addEventListener(
+        "click",
+        async function() {
 
-"click",      
+            showSection(
+                "myBookingsSection"
+            );
 
-function() {      
+            await loadMyBookings();
 
-    showSection(      
-        "myBookingsSection"      
-    );      
+        }
+    );
 
-}
-
-);
-
-}
+    }
 
 const withdrawButton =
 getElement(
@@ -3634,22 +3818,45 @@ getElement(
 
 if (referralButton) {
 
-referralButton.addEventListener(
+    referralButton.addEventListener(
+        "click",
+        function() {
 
-"click",      
+            showSection(
+                "referralSection"
+            );
 
-function() {      
+            loadReferralInfo();
 
-    showSection(      
-        "referralSection"      
-    );      
+        }
+    );
 
 }
 
-);
+/* -----------------------------------------------------
+ADMIN BUTTON
+----------------------------------------------------- */
+
+const adminBookingsButton =
+    getElement("adminBookingsButton");
+
+if (adminBookingsButton) {
+
+    adminBookingsButton.addEventListener(
+        "click",
+        function() {
+
+            console.log(
+                "RoomRent: Admin Angalia Bookings imebonyezwa."
+            );
+
+            anzishaAdminBookingsListener();
+
+        }
+    );
 
 }
-
+    
 /* -----------------------------------------------------
 BOTTOM NAVIGATION
 ----------------------------------------------------- */
@@ -3706,25 +3913,22 @@ function() {
 }
 
 const bookingsNavButton =
-getElement(
-"bookingsNavButton"
-);
+    getElement("bookingsNavButton");
 
 if (bookingsNavButton) {
 
-bookingsNavButton.addEventListener(
+    bookingsNavButton.addEventListener(
+        "click",
+        async function() {
 
-"click",      
+            showSection(
+                "myBookingsSection"
+            );
 
-function() {      
+            await loadMyBookings();
 
-    showSection(      
-        "myBookingsSection"      
-    );      
-
-}
-
-);
+        }
+    );
 
 }
 
