@@ -3935,372 +3935,384 @@ return true;
 /* =========================================================
 30.1 OPEN ADMIN DASHBOARD
 ========================================================= */
-
 function funguaAdminDashboard() {
 
-if (!requireAdmin()) {  
-    return;  
-}  
+    if (!requireAdmin()) {
+        return;
+    }
 
-const adminSection =  
-    getElement("adminSection");  
+    const adminSection =
+        getElement("adminSection");
 
-if (!adminSection) {  
+    if (!adminSection) {
+        alert("adminSection haipo kwenye HTML.");
+        return;
+    }
 
-    alert(  
-        "adminSection haipo kwenye HTML."  
-    );  
+    hideAllAppSections();
 
-    return;  
-}  
+    adminSection.classList.remove("hidden");
+    adminSection.style.display = "block";
 
-hideAllAppSections();  
+    adminSection.innerHTML = `
 
-adminSection.style.display =  
-    "block";  
+        <div class="admin-dashboard">
 
-adminSection.classList.remove(  
-    "hidden"  
-);  
+            <h2>
+                🛠️ RoomRent Admin Dashboard
+            </h2>
 
-adminSection.innerHTML = `  
+            <p>
+                Karibu Admin. Hapa unaweza
+                kusimamia bookings za wateja.
+            </p>
 
-    <div class="admin-dashboard">  
+            <div class="admin-menu">
 
-        <h2>  
-            🛠️ RoomRent Admin Dashboard  
-        </h2>  
+                <button
+                    type="button"
+                    id="adminBookingsBtn">
 
-        <p>  
-            Karibu Admin. Hapa unaweza  
-            kusimamia bookings za wateja.  
-        </p>  
+                    📋 Angalia Bookings
 
-        <div class="admin-menu">  
+                </button>
 
-            <button  
-                type="button"  
-                id="adminBookingsBtn">  
+                <button
+                    type="button"
+                    id="adminRefreshBtn">
 
-                📋 Angalia Bookings  
+                    🔄 Refresh
 
-            </button>  
+                </button>
 
-            <button  
-                type="button"  
-                id="adminRefreshBtn">  
+            </div>
 
-                🔄 Refresh  
+            <div id="adminContent">
 
-            </button>  
+                <div class="admin-welcome">
 
-        </div>  
+                    <h3>
+                        👋 Karibu Admin
+                    </h3>
 
-        <div id="adminContent">  
+                    <p>
+                        Bonyeza "Angalia Bookings"
+                        kuona bookings za wateja.
+                    </p>
 
-            <div class="admin-welcome">  
+                </div>
 
-                <h3>  
-                    👋 Karibu Admin  
-                </h3>  
+            </div>
 
-                <p>  
-                    Bonyeza "Angalia Bookings"  
-                    kuona bookings za wateja.  
-                </p>  
+        </div>
 
-            </div>  
+    `;
 
-        </div>  
+    /*
+     * TUNATUMIA EVENT DELEGATION
+     * ili button ya dynamic isigome.
+     */
 
-    </div>  
+    adminSection.onclick =
+        function(event) {
 
-`;  
+            const bookingsButton =
+                event.target.closest(
+                    "#adminBookingsBtn"
+                );
 
+            if (bookingsButton) {
 
-const bookingsButton =
-    getElement("adminBookingsBtn");
+                console.log(
+                    "RoomRent Admin: Angalia Bookings imebonyezwa."
+                );
 
-if (bookingsButton) {
+                anzishaAdminBookingsListener();
 
-    bookingsButton.onclick = function() {
+                return;
+            }
 
-        console.log(
-            "RoomRent Admin: Angalia Bookings imebonyezwa."
-        );
+            const refreshButton =
+                event.target.closest(
+                    "#adminRefreshBtn"
+                );
 
-        anzishaAdminBookingsListener();
+            if (refreshButton) {
 
-    };
+                console.log(
+                    "RoomRent Admin: Refresh imebonyezwa."
+                );
 
-}
+                funguaAdminDashboard();
 
-const refreshButton =  
-    getElement(  
-        "adminRefreshBtn"  
-    );  
+                return;
+            }
 
-if (refreshButton) {  
-
-    refreshButton.addEventListener(  
-        "click",  
-        function() {  
-
-            funguaAdminDashboard();  
-
-        }  
-    );  
-
-}
+        };
 
 }
 
+                        
 /* =========================================================
 30.2 ADMIN BOOKINGS
 ========================================================= */
-
 async function anzishaAdminBookingsListener() {
 
-if (!requireAdmin()) {  
-    return;  
-}  
+    if (!requireAdmin()) {
+        return;
+    }
 
-if (!db) {  
+    if (!db) {
 
-    alert(  
-        "Firebase Firestore haijaandaliwa vizuri."  
-    );  
+        alert(
+            "Firebase Firestore haijaandaliwa vizuri."
+        );
 
-    return;  
-}  
+        return;
+    }
 
-const content =  
-    getElement("adminContent");  
+    const content =
+        getElement("adminContent");
 
-if (!content) {  
-    return;  
-}  
+    if (!content) {
 
-content.innerHTML = `  
+        console.error(
+            "RoomRent Admin: adminContent haipo."
+        );
 
-    <h3>  
-        📋 Bookings za Wateja  
-    </h3>  
+        return;
+    }
 
-    <div id="adminBookingsList">  
+    content.innerHTML = `
 
-        <p>  
-            ⏳ Inapakia bookings...  
-        </p>  
+        <div class="admin-bookings-section">
 
-    </div>  
+            <h3>
+                📋 Bookings za Wateja
+            </h3>
 
-`;  
+            <p>
+                ⏳ Inapakia bookings...
+            </p>
 
-const list =  
-    getElement(  
-        "adminBookingsList"  
-    );  
+        </div>
 
-try {  
+    `;
 
-    const snapshot =  
-        await db  
-            .collection("bookings")  
-            .get();  
+    try {
 
-    const bookings = [];  
+        console.log(
+            "RoomRent Admin: Inatafuta bookings Firestore..."
+        );
 
-    snapshot.forEach(  
-        function(doc) {  
+        const snapshot =
+            await db
+                .collection("bookings")
+                .get();
 
-            bookings.push({  
+        console.log(
+            "RoomRent Admin: Bookings zimepatikana:",
+            snapshot.size
+        );
 
-                id: doc.id,  
+        if (snapshot.empty) {
 
-                ...doc.data()  
+            content.innerHTML = `
 
-            });  
+                <div class="admin-bookings-section">
 
-        }  
-    );  
+                    <h3>
+                        📋 Bookings za Wateja
+                    </h3>
 
+                    <div class="empty-state">
 
-    bookings.sort(  
-        function(a, b) {  
+                        <h3>
+                            📭 Hakuna booking bado.
+                        </h3>
 
-            const timeA =  
-                a.createdAt &&  
-                typeof a.createdAt.toMillis ===  
-                "function"  
-                    ? a.createdAt.toMillis()  
-                    : 0;  
+                        <p>
+                            Hakuna booking iliyopokelewa
+                            kwenye mfumo.
+                        </p>
 
-            const timeB =  
-                b.createdAt &&  
-                typeof b.createdAt.toMillis ===  
-                "function"  
-                    ? b.createdAt.toMillis()  
-                    : 0;  
+                    </div>
 
-            return timeB - timeA;  
+                </div>
 
-        }  
-    );  
+            `;
 
+            return;
+        }
 
-    if (!bookings.length) {  
+        const bookings = [];
 
-        list.innerHTML = `  
+        snapshot.forEach(
+            function(doc) {
 
-            <div class="empty-state">  
+                bookings.push({
 
-                <h3>  
-                    📭 Hakuna booking bado.  
-                </h3>  
+                    id: doc.id,
 
-                <p>  
-                    Hakuna booking iliyopokelewa  
-                    kwenye mfumo.  
-                </p>  
+                    ...doc.data()
 
-            </div>  
+                });
 
-        `;  
+            }
+        );
+
+        bookings.sort(
+            function(a, b) {
+
+                const timeA =
+                    a.createdAt &&
+                    typeof a.createdAt.toMillis ===
+                    "function"
+                        ? a.createdAt.toMillis()
+                        : 0;
+
+                const timeB =
+                    b.createdAt &&
+                    typeof b.createdAt.toMillis ===
+                    "function"
+                        ? b.createdAt.toMillis()
+                        : 0;
+
+                return timeB - timeA;
+
+            }
+        );
+
+        let html = `
+
+            <div class="admin-bookings-section">
 
-        return;  
-    }  
+                <h3>
+                    📋 Bookings za Wateja
+                </h3>
 
+                <p>
+                    Jumla ya bookings:
+                    <strong>
+                        ${bookings.length}
+                    </strong>
+                </p>
 
-    let html = `  
+        `;
 
-        <div class="admin-bookings-wrapper">  
+        bookings.forEach(
+            function(booking) {
 
-            <p>  
-                Jumla ya bookings:  
-                <strong>  
-                    ${bookings.length}  
-                </strong>  
-            </p>  
+                html += `
 
-    `;  
+                    <div class="admin-booking-card">
 
+                        <h3>
+                            📋 Booking
+                            ${booking.bookingNumber || "-"}
+                        </h3>
 
-    bookings.forEach(  
-        function(booking) {  
+                        <p>
+                            <strong>Mteja:</strong>
+                            ${booking.customerName || "-"}
+                        </p>
 
-            html += `  
+                        <p>
+                            <strong>Simu:</strong>
+                            ${booking.customerPhone || "-"}
+                        </p>
 
-                <div class="admin-booking-card">  
+                        <p>
+                            <strong>Email:</strong>
+                            ${booking.customerEmail || "-"}
+                        </p>
 
-                    <h3>  
-                        📋 Booking  
-                        ${booking.bookingNumber || "-"}  
-                    </h3>  
+                        <p>
+                            <strong>Chumba:</strong>
+                            ${booking.roomNumber || "-"}
+                        </p>
 
-                    <p>  
-                        <strong>Mteja:</strong>  
-                        ${booking.customerName || "-"}  
-                    </p>  
+                        <p>
+                            <strong>Bei:</strong>
+                            ${formatMoney(
+                                booking.roomPrice ||
+                                booking.paymentAmount ||
+                                0
+                            )}
+                        </p>
 
-                    <p>  
-                        <strong>Simu:</strong>  
-                        ${booking.customerPhone || "-"}  
-                    </p>  
+                        <p>
+                            <strong>Njia ya malipo:</strong>
+                            ${booking.paymentMethod || "-"}
+                        </p>
 
-                    <p>  
-                        <strong>Email:</strong>  
-                        ${booking.customerEmail || "-"}  
-                    </p>  
+                        <p>
+                            <strong>Payment Status:</strong>
+                            ${booking.paymentStatus || "-"}
+                        </p>
 
-                    <p>  
-                        <strong>Chumba:</strong>  
-                        ${booking.roomNumber || "-"}  
-                    </p>  
+                        <p>
+                            <strong>Booking Status:</strong>
+                            ${booking.bookingStatus || "-"}
+                        </p>
 
-                    <p>  
-                        <strong>Bei:</strong>  
-                        ${formatMoney(  
-                            booking.roomPrice ||  
-                            booking.paymentAmount ||  
-                            0  
-                        )}  
-                    </p>  
+                        <p>
+                            <strong>Profit Status:</strong>
+                            ${booking.profitStatus || "-"}
+                        </p>
 
-                    <p>  
-                        <strong>Njia ya malipo:</strong>  
-                        ${booking.paymentMethod || "-"}  
-                    </p>  
+                        <p>
+                            <strong>Admin Confirmed:</strong>
+                            ${
+                                booking.adminConfirmed
+                                    ? "NDIYO"
+                                    : "HAPANA"
+                            }
+                        </p>
 
-                    <p>  
-                        <strong>Payment Status:</strong>  
-                        ${booking.paymentStatus || "-"}  
-                    </p>  
+                    </div>
 
-                    <p>  
-                        <strong>Booking Status:</strong>  
-                        ${booking.bookingStatus || "-"}  
-                    </p>  
+                `;
 
-                    <p>  
-                        <strong>Profit Status:</strong>  
-                        ${booking.profitStatus || "-"}  
-                    </p>  
+            }
+        );
 
-                    <p>  
-                        <strong>Admin Confirmed:</strong>  
-                        ${  
-                            booking.adminConfirmed  
-                                ? "NDIYO"  
-                                : "HAPANA"  
-                        }  
-                    </p>  
+        html += `
 
-                </div>  
+            </div>
 
-            `;  
+        `;
 
-        }  
-    );  
+        content.innerHTML =
+            html;
 
+    } catch (error) {
 
-    html += `  
+        console.error(
+            "RoomRent Admin bookings error:",
+            error
+        );
 
-        </div>  
+        content.innerHTML = `
 
-    `;  
+            <div class="empty-state">
 
+                <h3>
+                    ❌ Imeshindikana kupakia bookings.
+                </h3>
 
-    list.innerHTML =  
-        html;  
+                <p>
+                    ${error.message || ""}
+                </p>
 
+            </div>
 
-} catch (error) {  
+        `;
 
-    console.error(  
-        "Admin bookings error:",  
-        error  
-    );  
+    }
 
-    list.innerHTML = `  
+                    }
 
-        <div class="empty-state">  
-
-            <h3>  
-                ❌ Imeshindikana kupakia bookings.  
-            </h3>  
-
-            <p>  
-                ${error.message || ""}  
-            </p>  
-
-        </div>  
-
-    `;  
-
-}
-
-}
 
 /* =========================================================
 30.3 EXPOSE ADMIN FUNCTIONS
