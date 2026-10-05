@@ -4213,31 +4213,27 @@ function funguaAdminDashboard() {
     /* =====================================================
        ADMIN BOOKINGS BUTTON
     ===================================================== */
+const adminBookingsButton =
+    getElement("adminBookingsBtn");
 
-    const bookingsBtn =
-        document.getElementById(
-            "adminBookingsBtn"
-        );
+if (adminBookingsButton) {
 
-    if (bookingsBtn) {
+    adminBookingsButton.addEventListener(
+        "click",
+        async function(event) {
 
-        bookingsBtn.addEventListener(
-            "click",
-            async function(event) {
+            event.preventDefault();
 
-                event.preventDefault();
+            console.log(
+                "RoomRent: Admin Angalia Bookings imebonyezwa."
+            );
 
-                console.log(
-                    "RoomRent Admin: Angalia Bookings imebonyezwa."
-                );
+            await anzishaAdminBookingsListener();
 
-                await anzishaAdminBookingsListener();
-
-            }
-        );
+        }
+    );
 
     }
-
 
     /* =====================================================
        ADMIN REFRESH BUTTON
