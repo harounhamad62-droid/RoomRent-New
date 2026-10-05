@@ -1024,3 +1024,252 @@ select:focus-visible {
 .hidden {
     display: none !important;
 }
+
+/* =========================================================
+   ADMIN BOOKING MANAGEMENT
+========================================================= */
+
+.admin-bookings-section {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.admin-bookings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.admin-bookings-header h3 {
+    margin: 0;
+    font-size: 24px;
+    color: #263238;
+}
+
+.admin-bookings-header p {
+    margin: 6px 0 0;
+    color: #78909c;
+}
+
+.admin-count-badge {
+    min-width: 42px;
+    height: 42px;
+    padding: 0 12px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0f766e;
+    color: white;
+    font-weight: 700;
+    font-size: 17px;
+}
+
+.admin-booking-card {
+    background: #ffffff;
+    border: 1px solid #dfe6e8;
+    border-radius: 18px;
+    padding: 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07);
+}
+
+.admin-booking-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #edf1f2;
+}
+
+.admin-booking-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #90a4ae;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+}
+
+.admin-booking-top h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #263238;
+    word-break: break-word;
+}
+
+.admin-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 11px;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.admin-status-badge.pending {
+    background: #fff4d6;
+    color: #9a6700;
+}
+
+.admin-status-badge.confirmed {
+    background: #e6f7ed;
+    color: #16733b;
+}
+
+.admin-status-badge.rejected {
+    background: #fdeaea;
+    color: #b42318;
+}
+
+.admin-booking-info {
+    padding: 15px 0;
+}
+
+.admin-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 8px 0;
+}
+
+.admin-info-row span {
+    color: #78909c;
+    font-size: 14px;
+}
+
+.admin-info-row strong {
+    color: #263238;
+    font-size: 14px;
+    text-align: right;
+    max-width: 60%;
+    word-break: break-word;
+}
+
+.admin-booking-status {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 12px;
+    background: #f6f9fa;
+    border-radius: 12px;
+}
+
+.admin-booking-status div {
+    text-align: center;
+}
+
+.admin-booking-status small {
+    display: block;
+    color: #90a4ae;
+    font-size: 10px;
+    margin-bottom: 5px;
+}
+
+.admin-booking-status strong {
+    display: block;
+    color: #455a64;
+    font-size: 11px;
+    word-break: break-word;
+}
+
+.admin-booking-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.admin-booking-actions button {
+    flex: 1;
+    min-height: 46px;
+    border: 0;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.admin-confirm-button {
+    background: #16834b;
+    color: white;
+}
+
+.admin-reject-button {
+    background: #c62828;
+    color: white;
+}
+
+.admin-confirm-button:active,
+.admin-reject-button:active {
+    transform: scale(0.98);
+}
+
+.admin-booking-completed {
+    margin-top: 15px;
+    padding: 12px;
+    border-radius: 10px;
+    background: #f6f9fa;
+    color: #455a64;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.admin-empty-bookings {
+    background: white;
+    border: 1px solid #dfe6e8;
+    border-radius: 18px;
+    padding: 35px 20px;
+    text-align: center;
+}
+
+.admin-empty-icon {
+    font-size: 42px;
+    margin-bottom: 10px;
+}
+
+.admin-empty-bookings h3 {
+    margin: 5px 0;
+    color: #263238;
+}
+
+.admin-empty-bookings p {
+    color: #78909c;
+    margin: 8px 0 0;
+}
+
+@media (max-width: 600px) {
+
+    .admin-booking-card {
+        padding: 15px;
+    }
+
+    .admin-booking-top {
+        flex-direction: column;
+    }
+
+    .admin-info-row {
+        gap: 10px;
+    }
+
+    .admin-info-row strong {
+        max-width: 55%;
+    }
+
+    .admin-booking-status {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .admin-booking-actions {
+        flex-direction: column;
+    }
+
+}
