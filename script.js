@@ -4177,17 +4177,13 @@ function funguaAdminDashboard() {
                 <button
                     type="button"
                     id="adminBookingsBtn">
-
                     📋 Angalia Bookings
-
                 </button>
 
                 <button
                     type="button"
                     id="adminRefreshBtn">
-
                     🔄 Refresh
-
                 </button>
 
             </div>
@@ -4227,7 +4223,7 @@ function funguaAdminDashboard() {
 
         bookingsBtn.addEventListener(
             "click",
-            function(event) {
+            async function(event) {
 
                 event.preventDefault();
 
@@ -4235,7 +4231,7 @@ function funguaAdminDashboard() {
                     "RoomRent Admin: Angalia Bookings imebonyezwa."
                 );
 
-                anzishaAdminBookingsListener();
+                await anzishaAdminBookingsListener();
 
             }
         );
@@ -4272,7 +4268,7 @@ function funguaAdminDashboard() {
     }
 
 }
-
+    
 /* =========================================================
 30.2 ADMIN BOOKINGS
 ========================================================= */
