@@ -3836,26 +3836,29 @@ if (referralButton) {
 /* -----------------------------------------------------
 ADMIN BUTTON
 ----------------------------------------------------- */
-
 const adminBookingsButton =
-    getElement("adminBookingsButton");
+    getElement("adminBookingsBtn");
 
 if (adminBookingsButton) {
 
     adminBookingsButton.addEventListener(
         "click",
-        function() {
+        async function(event) {
+
+            event.preventDefault();
 
             console.log(
                 "RoomRent: Admin Angalia Bookings imebonyezwa."
             );
 
-            anzishaAdminBookingsListener();
+            await anzishaAdminBookingsListener();
 
         }
     );
 
 }
+
+
     
 /* -----------------------------------------------------
 BOTTOM NAVIGATION
