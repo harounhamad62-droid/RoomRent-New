@@ -4331,20 +4331,37 @@ async function anzishaAdminBookingsListener() {
             snapshot.size
         );
 
+
+        /* =================================================
+           HAKUNA BOOKING
+        ================================================= */
+
         if (snapshot.empty) {
 
             content.innerHTML = `
 
                 <div class="admin-bookings-section">
 
-                    <h3>
-                        📋 Bookings za Wateja
-                    </h3>
-
-                    <div class="empty-state">
+                    <div class="admin-bookings-header">
 
                         <h3>
-                            📭 Hakuna booking bado.
+                            📋 Bookings za Wateja
+                        </h3>
+
+                        <span class="admin-count-badge">
+                            0
+                        </span>
+
+                    </div>
+
+                    <div class="admin-empty-bookings">
+
+                        <div class="admin-empty-icon">
+                            📭
+                        </div>
+
+                        <h3>
+                            Hakuna booking bado
                         </h3>
 
                         <p>
@@ -4361,6 +4378,11 @@ async function anzishaAdminBookingsListener() {
             return;
         }
 
+
+        /* =================================================
+           TENGENEZA ARRAY YA BOOKINGS
+        ================================================= */
+
         const bookings = [];
 
         snapshot.forEach(
@@ -4376,6 +4398,11 @@ async function anzishaAdminBookingsListener() {
 
             }
         );
+
+
+        /* =================================================
+           SORT - MPYA KWANZA
+        ================================================= */
 
         bookings.sort(
             function(a, b) {
@@ -4399,92 +4426,346 @@ async function anzishaAdminBookingsListener() {
             }
         );
 
+
+        /* =================================================
+           HEADER
+        ================================================= */
+
         let html = `
 
             <div class="admin-bookings-section">
 
-                <h3>
-                    📋 Bookings za Wateja
-                </h3>
+                <div class="admin-bookings-header">
 
-                <p>
-                    Jumla ya bookings:
-                    <strong>
+                    <div>
+
+                        <h3>
+                            📋 Bookings za Wateja
+                        </h3>
+
+                        <p>
+                            Angalia na simamia
+                            bookings za customers.
+                        </p>
+
+                    </div>
+
+                    <span class="admin-count-badge">
                         ${bookings.length}
-                    </strong>
-                </p>
+                    </span>
+
+                </div>
 
         `;
 
+
+        /* =================================================
+           BOOKING CARDS
+        ================================================= */
+
         bookings.forEach(
             function(booking) {
+
+                let statusText =
+                    "Inasubiri";
+
+                let statusClass =
+                    "pending";
+
+
+                if (
+                    booking.adminConfirmed === true
+                    ||
+                    booking.bookingStatus ===
+                    "active"
+                ) {
+
+                    statusText =
+                        "Imethibitishwa";
+
+                    statusClass =
+                        "confirmed";
+
+                }
+                else if (
+                    booking.bookingStatus ===
+                    "rejected"
+                    ||
+                    booking.paymentStatus ===
+                    "rejected"
+                ) {
+
+                    statusText =
+                        "Imekataliwa";
+
+                    statusClass =
+                        "rejected";
+
+                }
+
+
+                const bookingNumber =
+                    booking.bookingNumber || "-";
+
+                const customerName =
+                    booking.customerName || "-";
+
+                const customerPhone =
+                    booking.customerPhone || "-";
+
+                const customerEmail =
+                    booking.customerEmail || "-";
+
+                const roomNumber =
+                    booking.roomNumber || "-";
+
+                const roomPrice =
+                    formatMoney(
+                        booking.roomPrice ||
+                        booking.paymentAmount ||
+                        0
+                    );
+
+                const paymentMethod =
+                    booking.paymentMethod || "-";
+
 
                 html += `
 
                     <div class="admin-booking-card">
 
-                        <h3>
-                            📋 Booking
-                            ${booking.bookingNumber || "-"}
-                        </h3>
+                        <div class="admin-booking-top">
 
-                        <p>
-                            <strong>Mteja:</strong>
-                            ${booking.customerName || "-"}
-                        </p>
+                            <div>
 
-                        <p>
-                            <strong>Simu:</strong>
-                            ${booking.customerPhone || "-"}
-                        </p>
+                                <span
+                                    class="admin-booking-label">
+                                    BOOKING
+                                </span>
 
-                        <p>
-                            <strong>Email:</strong>
-                            ${booking.customerEmail || "-"}
-                        </p>
+                                <h3>
+                                    📋
+                                    ${bookingNumber}
+                                </h3>
 
-                        <p>
-                            <strong>Chumba:</strong>
-                            ${booking.roomNumber || "-"}
-                        </p>
+                            </div>
 
-                        <p>
-                            <strong>Bei:</strong>
-                            ${formatMoney(
-                                booking.roomPrice ||
-                                booking.paymentAmount ||
-                                0
-                            )}
-                        </p>
+                            <span
+                                class="
+                                    admin-status-badge
+                                    ${statusClass}
+                                ">
 
-                        <p>
-                            <strong>Njia ya malipo:</strong>
-                            ${booking.paymentMethod || "-"}
-                        </p>
+                                ${
+                                    statusClass ===
+                                    "confirmed"
+                                        ? "🟢"
+                                        : statusClass ===
+                                          "rejected"
+                                            ? "🔴"
+                                            : "🟡"
+                                }
 
-                        <p>
-                            <strong>Payment Status:</strong>
-                            ${booking.paymentStatus || "-"}
-                        </p>
+                                ${statusText}
 
-                        <p>
-                            <strong>Booking Status:</strong>
-                            ${booking.bookingStatus || "-"}
-                        </p>
+                            </span>
 
-                        <p>
-                            <strong>Profit Status:</strong>
-                            ${booking.profitStatus || "-"}
-                        </p>
+                        </div>
 
-                        <p>
-                            <strong>Admin Confirmed:</strong>
-                            ${
-                                booking.adminConfirmed
-                                    ? "NDIYO"
-                                    : "HAPANA"
-                            }
-                        </p>
+
+                        <div class="admin-booking-info">
+
+                            <div class="admin-info-row">
+
+                                <span>
+                                    👤 Mteja
+                                </span>
+
+                                <strong>
+                                    ${customerName}
+                                </strong>
+
+                            </div>
+
+
+                            <div class="admin-info-row">
+
+                                <span>
+                                    📱 Simu
+                                </span>
+
+                                <strong>
+                                    ${customerPhone}
+                                </strong>
+
+                            </div>
+
+
+                            <div class="admin-info-row">
+
+                                <span>
+                                    📧 Email
+                                </span>
+
+                                <strong>
+                                    ${customerEmail}
+                                </strong>
+
+                            </div>
+
+
+                            <div class="admin-info-row">
+
+                                <span>
+                                    🏠 Chumba
+                                </span>
+
+                                <strong>
+                                    ${roomNumber}
+                                </strong>
+
+                            </div>
+
+
+                            <div class="admin-info-row">
+
+                                <span>
+                                    💰 Bei
+                                </span>
+
+                                <strong>
+                                    ${roomPrice}
+                                </strong>
+
+                            </div>
+
+
+                            <div class="admin-info-row">
+
+                                <span>
+                                    💳 Njia ya malipo
+                                </span>
+
+                                <strong>
+                                    ${paymentMethod}
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="admin-booking-status">
+
+                            <div>
+
+                                <small>
+                                    Payment Status
+                                </small>
+
+                                <strong>
+                                    ${
+                                        booking.paymentStatus ||
+                                        "-"
+                                    }
+                                </strong>
+
+                            </div>
+
+
+                            <div>
+
+                                <small>
+                                    Booking Status
+                                </small>
+
+                                <strong>
+                                    ${
+                                        booking.bookingStatus ||
+                                        "-"
+                                    }
+                                </strong>
+
+                            </div>
+
+
+                            <div>
+
+                                <small>
+                                    Profit
+                                </small>
+
+                                <strong>
+                                    ${
+                                        booking.profitStatus ||
+                                        "not_started"
+                                    }
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+
+                        ${
+                            statusClass === "pending"
+                                ? `
+
+                                    <div
+                                        class="
+                                            admin-booking-actions
+                                        ">
+
+                                        <button
+                                            type="button"
+                                            class="
+                                                admin-confirm-button
+                                            "
+                                            data-booking-id="
+                                                ${booking.id}
+                                            ">
+
+                                            ✅ Thibitisha Booking
+
+                                        </button>
+
+
+                                        <button
+                                            type="button"
+                                            class="
+                                                admin-reject-button
+                                            "
+                                            data-booking-id="
+                                                ${booking.id}
+                                            ">
+
+                                            ❌ Kataa Booking
+
+                                        </button>
+
+                                    </div>
+
+                                `
+                                : `
+
+                                    <div
+                                        class="
+                                            admin-booking-completed
+                                        ">
+
+                                        ${
+                                            statusClass ===
+                                            "confirmed"
+
+                                                ? "🟢 Booking hii imethibitishwa."
+
+                                                : "🔴 Booking hii imekataliwa."
+                                        }
+
+                                    </div>
+
+                                `
+                        }
 
                     </div>
 
@@ -4493,14 +4774,79 @@ async function anzishaAdminBookingsListener() {
             }
         );
 
+
         html += `
 
             </div>
 
         `;
 
+
         content.innerHTML =
             html;
+
+
+        /* =================================================
+           CONFIRM BUTTONS
+        ================================================= */
+
+        const confirmButtons =
+            content.querySelectorAll(
+                ".admin-confirm-button"
+            );
+
+
+        confirmButtons.forEach(
+            function(button) {
+
+                button.addEventListener(
+                    "click",
+                    async function() {
+
+                        const bookingId =
+                            button.dataset.bookingId;
+
+                        await thibitishaBookingAdmin(
+                            bookingId
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+        /* =================================================
+           REJECT BUTTONS
+        ================================================= */
+
+        const rejectButtons =
+            content.querySelectorAll(
+                ".admin-reject-button"
+            );
+
+
+        rejectButtons.forEach(
+            function(button) {
+
+                button.addEventListener(
+                    "click",
+                    async function() {
+
+                        const bookingId =
+                            button.dataset.bookingId;
+
+                        await kataaBookingAdmin(
+                            bookingId
+                        );
+
+                    }
+                );
+
+            }
+        );
+
 
     } catch (error) {
 
@@ -4511,14 +4857,21 @@ async function anzishaAdminBookingsListener() {
 
         content.innerHTML = `
 
-            <div class="empty-state">
+            <div class="admin-empty-bookings">
+
+                <div class="admin-empty-icon">
+                    ❌
+                </div>
 
                 <h3>
-                    ❌ Imeshindikana kupakia bookings.
+                    Imeshindikana kupakia bookings
                 </h3>
 
                 <p>
-                    ${error.message || ""}
+                    ${
+                        error.message ||
+                        ""
+                    }
                 </p>
 
             </div>
@@ -4527,9 +4880,196 @@ async function anzishaAdminBookingsListener() {
 
     }
 
-}                                                                                            
-            
+}
 
+
+/* =========================================================
+30.2A ADMIN CONFIRM BOOKING
+========================================================= */
+
+async function thibitishaBookingAdmin(
+    bookingId
+) {
+
+    if (!requireAdmin()) {
+        return;
+    }
+
+
+    const bookingRef =
+        db
+            .collection("bookings")
+            .doc(bookingId);
+
+
+    try {
+
+        const confirmed =
+            confirm(
+                "Una uhakika unataka kuthibitisha booking hii?"
+            );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        await bookingRef.update({
+
+            adminConfirmed:
+                true,
+
+            paymentStatus:
+                "verified",
+
+            bookingStatus:
+                "active",
+
+            profitStatus:
+                "not_started",
+
+            adminConfirmedAt:
+                firebase.firestore.FieldValue
+                    .serverTimestamp(),
+
+            updatedAt:
+                firebase.firestore.FieldValue
+                    .serverTimestamp()
+
+        });
+
+
+        alert(
+            "✅ Booking imethibitishwa kikamilifu."
+        );
+
+
+        await anzishaAdminBookingsListener();
+
+
+    } catch (error) {
+
+        console.error(
+            "RoomRent Admin confirm booking error:",
+            error
+        );
+
+
+        alert(
+            "❌ Imeshindikana kuthibitisha booking.\n\n" +
+            (
+                error.message ||
+                "Firebase error"
+            )
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+30.2B ADMIN REJECT BOOKING
+========================================================= */
+
+async function kataaBookingAdmin(
+    bookingId
+) {
+
+    if (!requireAdmin()) {
+        return;
+    }
+
+
+    const reason =
+        prompt(
+            "Andika sababu ya kukataa booking hii:"
+        );
+
+
+    if (reason === null) {
+        return;
+    }
+
+
+    const cleanReason =
+        reason.trim();
+
+
+    if (!cleanReason) {
+
+        alert(
+            "⚠️ Lazima uweke sababu ya kukataa booking."
+        );
+
+        return;
+    }
+
+
+    const bookingRef =
+        db
+            .collection("bookings")
+            .doc(bookingId);
+
+
+    try {
+
+        await bookingRef.update({
+
+            adminConfirmed:
+                false,
+
+            paymentStatus:
+                "rejected",
+
+            bookingStatus:
+                "rejected",
+
+            profitStatus:
+                "not_started",
+
+            rejectionReason:
+                cleanReason,
+
+            rejectedAt:
+                firebase.firestore.FieldValue
+                    .serverTimestamp(),
+
+            updatedAt:
+                firebase.firestore.FieldValue
+                    .serverTimestamp()
+
+        });
+
+
+        alert(
+            "❌ Booking imekataliwa."
+        );
+
+
+        await anzishaAdminBookingsListener();
+
+
+    } catch (error) {
+
+        console.error(
+            "RoomRent Admin reject booking error:",
+            error
+        );
+
+
+        alert(
+            "❌ Imeshindikana kukataa booking.\n\n" +
+            (
+                error.message ||
+                "Firebase error"
+            )
+        );
+
+    }
+
+                    }            
 
 /* =========================================================
 30.3 EXPOSE ADMIN FUNCTIONS
