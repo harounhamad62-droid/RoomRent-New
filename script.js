@@ -1504,12 +1504,51 @@ async function loadMyBookings() {
                         <strong>Hali ya booking:</strong>
                         ${booking.bookingStatus || "-"}
                     </p>
+<p>
+    <strong>Hali ya faida:</strong>
+    ${booking.profitStatus || "-"}
+</p>
 
-                    <p>
-                        <strong>Profit:</strong>
-                        ${booking.profitStatus || "-"}
-                    </p>
+<hr>
 
+<h4>Makadirio ya Faida</h4>
+
+<p>
+    <strong>Faida kwa siku:</strong>
+    ${formatMoney(
+        booking.adminConfirmed === true
+            ? matokeoFaida.faidaKwaSiku
+            : beiChumba *
+              (Number(booking.profitRatePerDay) || 0.04)
+    )}
+</p>
+
+<p>
+    <strong>Siku zilizokamilika:</strong>
+    ${matokeoFaida.sikuZilizokamilika} / 90
+</p>
+
+<p>
+    <strong>Makadirio ya faida iliyokusanywa:</strong>
+    ${formatMoney(
+        matokeoFaida.jumlaYaFaida
+    )}
+</p>
+
+<p>
+    <strong>Siku zilizobaki:</strong>
+    ${sikuZilizobaki}
+</p>
+
+<p>
+    <strong>Hali:</strong>
+    ${haliFaida}
+</p>
+
+<p class="booking-notice">
+    Haya ni makadirio ya hesabu tu, si uthibitisho
+    wa fedha halisi zilizowekwa kwenye salio.
+</p>
                 </div>
 
             `;
