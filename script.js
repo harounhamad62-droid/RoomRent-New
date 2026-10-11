@@ -1444,9 +1444,30 @@ async function loadMyBookings() {
 
         let html = "";
 
-        bookings.forEach(function(booking) {
+       bookings.forEach(function(booking) {
 
-            html += `
+    const matokeoFaida =
+        hesabuFaidaYaBooking(booking);
+
+    const beiChumba =
+        Number(booking.roomPrice) ||
+        Number(booking.paymentAmount) ||
+        0;
+
+    const sikuZilizobaki =
+        Math.max(
+            0,
+            90 - matokeoFaida.sikuZilizokamilika
+        );
+
+    const haliFaida =
+        booking.adminConfirmed !== true
+            ? "Inasubiri uthibitisho wa Admin"
+            : matokeoFaida.bookingImemalizika
+                ? "Mzunguko umekamilika"
+                : "Inaendelea";
+
+    html += ` 
 
                 <div class="booking-card">
 
