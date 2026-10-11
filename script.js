@@ -4921,27 +4921,25 @@ async function thibitishaBookingAdmin(
         }
 
 
+                const mudaWaUthibitisho =
+            firebase.firestore.FieldValue.serverTimestamp();
+
         await bookingRef.update({
 
-            adminConfirmed:
-                true,
+            adminConfirmed: true,
 
-            paymentStatus:
-                "verified",
+            paymentStatus: "verified",
 
-            bookingStatus:
-                "active",
+            bookingStatus: "active",
 
-            profitStatus:
-                "not_started",
+            profitStatus: "running",
 
-            adminConfirmedAt:
-                firebase.firestore.FieldValue
-                    .serverTimestamp(),
+            profitStartAt: mudaWaUthibitisho,
+
+            adminConfirmedAt: mudaWaUthibitisho,
 
             updatedAt:
-                firebase.firestore.FieldValue
-                    .serverTimestamp()
+                firebase.firestore.FieldValue.serverTimestamp()
 
         });
 
