@@ -5099,3 +5099,92 @@ niAdmin;
 
 window.requireAdmin =
 requireAdmin;
+
+/* =========================================================
+   ROOMRENT - HESABU YA FAIDA KWA SAA 24 KAMILI
+   Muda wa booking: siku 90 (saa 2,160)
+   Kiwango cha faida: 4% kwa saa 24
+========================================================= */
+
+function hesabuFaidaYaBooking(booking) {
+    const sifuri = {
+        saaZilizopita: 0,
+        sikuZilizokamilika: 0,
+        faidaKwaSiku: 0,
+        jumlaYaFaida: 0,
+        bookingImemalizika: false
+    };
+
+    try {
+        // Booking lazima iwe imethibitishwa na Admin.
+        if (!booking || booking.adminConfirmed !== true) {
+            return sifuri;
+        }
+
+        // Tumia muda wa kuanza faida.
+        const mudaWaKuanza =
+            booking.profitStartAt ||
+            booking.adminConfirmedAt;
+
+        if (!mudaWaKuanza) {
+            return sifuri;
+        }
+
+        const tareheKuanza =
+            typeof mudaWaKuanza.toDate === "function"
+                ? mudaWaKuanza.toDate()
+                : new Date(mudaWaKuanza);
+
+        if (Number.isNaN(tareheKuanza.getTime())) {
+            return sifuri;
+        }
+
+        const sasa = Date.now();
+        const mwanzo = tareheKuanza.getTime();
+
+        // Kuzuia muda hasi ikiwa tarehe ya kuanza iko mbele.
+        if (sasa < mwanzo) {
+            return sifuri;
+        }
+
+        // Hesabu saa 24 kamili zilizopita.
+        const saaZilizopita = Math.floor(
+            (sasa - mwanzo) / (60 * 60 * 1000)
+        );
+
+        // Booking haiwezi kuzalisha faida zaidi ya siku 90.
+        const sikuZilizokamilika = Math.min(
+            Math.floor(saaZilizopita / 24),
+            90
+        );
+
+        const beiChumba = Number(booking.roomPrice) || 0;
+
+        const kiwangoChaFaida =
+            Number(booking.profitRatePerDay) || 0.04;
+
+        const faidaKwaSiku = beiChumba * kiwangoChaFaida;
+
+        const jumlaYaFaida =
+            faidaKwaSiku * sikuZilizokamilika;
+
+        return {
+            saaZilizopita: saaZilizopita,
+            sikuZilizokamilika: sikuZilizokamilika,
+            faidaKwaSiku: faidaKwaSiku,
+            jumlaYaFaida: jumlaYaFaida,
+            bookingImemalizika: sikuZilizokamilika >= 90
+        };
+
+    } catch (error) {
+        console.error(
+            "Hitilafu katika kuhesabu faida ya RoomRent:",
+            error
+        );
+
+        return sifuri;
+    }
+}
+
+window.hesabuFaidaYaBooking = hesabuFaidaYaBooking;
+
