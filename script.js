@@ -4886,7 +4886,6 @@ async function anzishaAdminBookingsListener() {
 /* =========================================================
 30.2A ADMIN CONFIRM BOOKING
 ========================================================= */
-
 async function thibitishaBookingAdmin(
     bookingId
 ) {
@@ -4895,6 +4894,13 @@ async function thibitishaBookingAdmin(
         return;
     }
 
+    bookingId =
+        String(bookingId).trim();
+
+    console.log(
+        "RoomRent Admin: Booking ID:",
+        JSON.stringify(bookingId)
+    );
 
     const bookingRef =
         db
@@ -4972,7 +4978,6 @@ async function thibitishaBookingAdmin(
 /* =========================================================
 30.2B ADMIN REJECT BOOKING
 ========================================================= */
-
 async function kataaBookingAdmin(
     bookingId
 ) {
@@ -4981,9 +4986,17 @@ async function kataaBookingAdmin(
         return;
     }
 
+    bookingId =
+        String(bookingId).trim();
+
+    console.log(
+        "RoomRent Admin: Booking ID:",
+        JSON.stringify(bookingId)
+    );
 
     const reason =
         prompt(
+
             "Andika sababu ya kukataa booking hii:"
         );
 
