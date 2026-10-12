@@ -3386,35 +3386,55 @@ console.log(
 bookingData
 );
 
-/* -------------------------------------------------
-SAVE BOOKING
-------------------------------------------------- */
+// =====================================================
+// SAVE BOOKING THROUGH SECURE RAILWAY BACKEND
+// =====================================================
 
-const bookingReference =
-await db
-.collection("bookings")
-.add(
-bookingData
+const token = await currentUser.getIdToken();
+
+const response = await fetch(
+    "https://roomrent-new-production.up.railway.app/api/bookings",
+    {
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        },
+
+        body: JSON.stringify({
+            roomId: String(selectedRoom.roomNumber),
+            paymentMethod: paymentMethod
+        })
+    }
 );
+
+let result;
+
+try {
+    result = await response.json();
+} catch (error) {
+    throw new Error("Server imerudisha majibu yasiyo sahihi.");
+}
+
+if (!response.ok || !result.success) {
+    throw new Error(
+        result.message || "Booking haikuweza kuhifadhiwa."
+    );
+}
 
 console.log(
-"RoomRent: Booking imehifadhiwa:",
-bookingReference.id
+    "RoomRent: Booking imehifadhiwa kupitia backend:",
+    result.booking.bookingId
 );
-
-/* -------------------------------------------------
-SUCCESS
-------------------------------------------------- */
 
 bookingContentAfterSubmission(
-
-bookingNumber,      
-
-selectedRoom,      
-
-paymentMethod
-
+    result.booking.bookingNumber,
+    selectedRoom,
+    result.booking.paymentMethod
 );
+
+
 
 } catch (error) {
 
