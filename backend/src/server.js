@@ -258,3 +258,173 @@ app.post("/api/bookings", authenticateUser, async (req, res) => {
         });
     }
 });
+
+// =====================================================
+// ROOMRENT: ADMIN BOOKING AUTHORIZATION
+// =====================================================
+
+const ROOMRENT_ADMIN_UID = "1kj3K591EHhHAOiSoxIp1xGve2x1";
+
+function requireRoomRentAdmin(req, res, next) {
+    if (!req.user || req.user.uid !== ROOMRENT_ADMIN_UID) {
+        return res.status(403).json({
+            success: false,
+            message: "Admin pekee ndiye anayeruhusiwa kufanya kitendo hiki."
+        });
+    }
+
+    next();
+}
+
+
+// =====================================================
+// ADMIN: CONFIRM BOOKING PAYMENT
+// =====================================================
+
+app.post(
+    "/api/admin/bookings/:bookingId/confirm",
+    authenticateUser,
+    requireRoomRentAdmin,
+    async (req, res) => {
+        try {
+            const bookingRef = db
+                .collection("bookings")
+                .doc(req.params.bookingId);
+
+            await db.runTransaction(async (transaction) => {
+                const bookingDoc = await transaction.get(bookingRef);
+
+                if (!bookingDoc.exists) {
+                    throw new Error("BOOKING_NOT_FOUND");
+                }
+
+                const booking = bookingDoc.data();
+
+                if (
+                    booking.paymentStatus !== "pending_verification" ||
+                    booking.bookingStatus !== "pending_payment_verification"
+                ) {
+                    throw new Error("BOOKING_NOT_PENDING");
+                }
+
+                transaction.update(bookingRef, {
+                    adminConfirmed: true,
+                    paymentStatus: "verified",
+                    bookingStatus: "active",
+                    profitStatus: "running",
+
+                    profitStartAt:
+                        admin.firestore.FieldValue.serverTimestamp(),
+
+                    adminConfirmedAt:
+                        admin.firestore.FieldValue.serverTimestamp(),
+
+                    updatedAt:
+                        admin.firestore.FieldValue.serverTimestamp()
+                });
+            });
+
+            return res.status(200).json({
+                success: true,
+                message: "Booking imethibitishwa na Admin."
+            });
+
+        } catch (error) {
+            if (error.message === "BOOKING_NOT_FOUND") {
+                return res.status(404).json({
+                    success: false,
+                    message: "Booking haijapatikana."
+                });
+            }
+
+            if (error.message === "BOOKING_NOT_PENDING") {
+                return res.status(409).json({
+                    success: false,
+                    message: "Booking hii si pending tena."
+                });
+            }
+
+            console.error("Admin confirmation error:", error);
+
+            return res.status(500).json({
+                success: false,
+                message: "Imeshindwa kuthibitisha booking."
+            });
+        }
+    }
+);
+
+
+// =====================================================
+// ADMIN: REJECT BOOKING
+// =====================================================
+
+app.post(
+    "/api/admin/bookings/:bookingId/reject",
+    authenticateUser,
+    requireRoomRentAdmin,
+    async (req, res) => {
+        try {
+            const bookingRef = db
+                .collection("bookings")
+                .doc(req.params.bookingId);
+
+            await db.runTransaction(async (transaction) => {
+                const bookingDoc = await transaction.get(bookingRef);
+
+                if (!bookingDoc.exists) {
+                    throw new Error("BOOKING_NOT_FOUND");
+                }
+
+                const booking = bookingDoc.data();
+
+                if (
+                    booking.paymentStatus !== "pending_verification" ||
+                    booking.bookingStatus !== "pending_payment_verification"
+                ) {
+                    throw new Error("BOOKING_NOT_PENDING");
+                }
+
+                transaction.update(bookingRef, {
+                    adminConfirmed: false,
+                    paymentStatus: "rejected",
+                    bookingStatus: "rejected",
+                    profitStatus: "not_started",
+
+                    adminRejectedAt:
+                        admin.firestore.FieldValue.serverTimestamp(),
+
+                    updatedAt:
+                        admin.firestore.FieldValue.serverTimestamp()
+                });
+            });
+
+            return res.status(200).json({
+                success: true,
+                message: "Booking imekataliwa."
+            });
+
+        } catch (error) {
+            if (error.message === "BOOKING_NOT_FOUND") {
+                return res.status(404).json({
+                    success: false,
+                    message: "Booking haijapatikana."
+                });
+            }
+
+            if (error.message === "BOOKING_NOT_PENDING") {
+                return res.status(409).json({
+                    success: false,
+                    message: "Booking hii si pending tena."
+                });
+            }
+
+            console.error("Admin rejection error:", error);
+
+            return res.status(500).json({
+                success: false,
+                message: "Imeshindwa kukataa booking."
+            });
+        }
+    }
+);
