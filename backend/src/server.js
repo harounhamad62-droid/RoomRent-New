@@ -79,86 +79,182 @@ app.listen(PORT, "0.0.0.0", () => {
 });
 
 // Create a booking using server-validated room details.
+// =====================================================
+// ROOMRENT: CREATE BOOKING SECURELY
+// =====================================================
+
 app.post("/api/bookings", authenticateUser, async (req, res) => {
-try {
-const { roomId, paymentMethod } = req.body || {};
+    try {
+        const roomId = String(req.body?.roomId || "").trim();
+        const submittedMethod = String(
+            req.body?.paymentMethod || ""
+        ).trim().toLowerCase();
 
-    // Only accept known room IDs.
-    const rooms = {
-        "0023": { price: 30000 },
-        "0024": { price: 70000 },
-        "0025": { price: 140000 },
-        "0026": { price: 210000 },
-        "0027": { price: 280000 },
-        "0028": { price: 350000 },
-        "0029": { price: 420000 },
-        "0030": { price: 490000 },
-        "0031": { price: 560000 },
-        "0032": { price: 630000 }
-    };
+        // Room prices are controlled by the backend.
+        const rooms = {
+            "0023": { price: 30000, maxBookings: 2 },
+            "0024": { price: 70000, maxBookings: 4 },
+            "0025": { price: 140000, maxBookings: 4 },
+            "0026": { price: 210000, maxBookings: 4 },
+            "0027": { price: 280000, maxBookings: 4 },
+            "0028": { price: 350000, maxBookings: 4 },
+            "0029": { price: 420000, maxBookings: 4 },
+            "0030": { price: 490000, maxBookings: 4 },
+            "0031": { price: 560000, maxBookings: 4 },
+            "0032": { price: 630000, maxBookings: 4 }
+        };
 
-    const room = rooms[String(roomId)];
+        const room = rooms[roomId];
 
-    if (!room) {
-        return res.status(400).json({
+        if (!room) {
+            return res.status(400).json({
+                success: false,
+                message: "Chumba ulicochagua hakipo."
+            });
+        }
+
+        // Normalize the payment method.
+        let paymentMethod;
+
+        if (submittedMethod === "airtel money".toLowerCase()) {
+            paymentMethod = "Airtel Money";
+        } else if (
+            submittedMethod === "mixx by yas" ||
+            submittedMethod === "mixx by yas".toUpperCase().toLowerCase()
+        ) {
+            paymentMethod = "MIXX BY YAS";
+        } else {
+            return res.status(400).json({
+                success: false,
+                message: "Njia ya malipo haijatambuliwa."
+            });
+        }
+
+        const userRef = db.collection("users").doc(req.user.uid);
+        const bookingsRef = db.collection("bookings");
+
+        const result = await db.runTransaction(async (transaction) => {
+            const userDoc = await transaction.get(userRef);
+
+            if (!userDoc.exists) {
+                throw new Error("USER_NOT_FOUND");
+            }
+
+            const userData = userDoc.data();
+
+            if (userData.status !== "active") {
+                throw new Error("USER_NOT_ACTIVE");
+            }
+
+            // Count this user's bookings for this specific room.
+            const existingBookingsQuery = bookingsRef
+                .where("userId", "==", req.user.uid)
+                .where("roomNumber", "==", roomId);
+
+            const existingBookings = await transaction.get(
+                existingBookingsQuery
+            );
+
+            const countedBookings = existingBookings.docs.filter((doc) => {
+                const booking = doc.data();
+
+                return ![
+                    "rejected",
+                    "cancelled"
+                ].includes(
+                    String(booking.bookingStatus || "").toLowerCase()
+                );
+            });
+
+            if (countedBookings.length >= room.maxBookings) {
+                throw new Error("ROOM_BOOKING_LIMIT_REACHED");
+            }
+
+            const bookingRef = bookingsRef.doc();
+
+            const bookingNumber =
+                "RR-" +
+                Date.now() +
+                "-" +
+                Math.random().toString(36).slice(2, 7).toUpperCase();
+
+            const dailyProfit = Math.round(room.price * 0.04);
+
+            const bookingData = {
+                bookingNumber: bookingNumber,
+                userId: req.user.uid,
+
+                customerName: userData.name || "",
+                customerPhone: userData.phone || "",
+                customerEmail: req.user.email || userData.email || "",
+
+                roomNumber: roomId,
+                roomPrice: room.price,
+
+                durationDays: 90,
+                profitRatePerDay: 0.04,
+                dailyProfit: dailyProfit,
+                totalEstimatedProfit: dailyProfit * 90,
+
+                paymentMethod: paymentMethod,
+                paymentAmount: room.price,
+
+                paymentStatus: "pending_verification",
+                bookingStatus: "pending_payment_verification",
+                profitStatus: "not_started",
+
+                adminConfirmed: false,
+
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            };
+
+            transaction.create(bookingRef, bookingData);
+
+            return {
+                bookingId: bookingRef.id,
+                bookingNumber: bookingNumber,
+                roomNumber: roomId,
+                roomPrice: room.price,
+                paymentMethod: paymentMethod,
+                paymentStatus: "pending_verification",
+                bookingStatus: "pending_payment_verification"
+            };
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: "Ombi lako limepokelewa. Subiri admin athibitishe malipo.",
+            booking: result
+        });
+
+    } catch (error) {
+        console.error("RoomRent booking error:", error);
+
+        if (error.message === "USER_NOT_FOUND") {
+            return res.status(404).json({
+                success: false,
+                message: "Akaunti yako haijapatikana."
+            });
+        }
+
+        if (error.message === "USER_NOT_ACTIVE") {
+            return res.status(403).json({
+                success: false,
+                message: "Akaunti yako haijawezeshwa."
+            });
+        }
+
+        if (error.message === "ROOM_BOOKING_LIMIT_REACHED") {
+            return res.status(409).json({
+                success: false,
+                message: "Umefikia kikomo cha idadi ya booking za chumba hiki."
+            });
+        }
+
+        return res.status(500).json({
             success: false,
-            message: "Invalid room ID"
+            message: "Booking haikuweza kuhifadhiwa. Tafadhali jaribu tena."
         });
     }
-
-    const allowedPaymentMethods = ["Airtel Money", "Mixx by Yas"];
-
-    if (!allowedPaymentMethods.includes(paymentMethod)) {
-        return res.status(400).json({
-            success: false,
-            message: "Invalid payment method"
-        });
-    }
-
-    const userRef = db.collection("users").doc(req.user.uid);
-    const userDoc = await userRef.get();
-
-    if (!userDoc.exists) {
-        return res.status(404).json({
-            success: false,
-            message: "User account not found"
-        });
-    }
-
-    const userData = userDoc.data();
-
-    if (userData.status !== "active") {
-        return res.status(403).json({
-            success: false,
-            message: "User account is not active"
-        });
-    }
-
-    const bookingData = {
-        userId: req.user.uid,
-        roomId: String(roomId),
-        roomPrice: room.price,
-        paymentMethod,
-        status: "pending_verification",
-        paymentStatus: "pending",
-        createdAt: admin.firestore.FieldValue.serverTimestamp()
-    };
-
-    const bookingRef = await db.collection("bookings").add(bookingData);
-
-    return res.status(201).json({
-        success: true,
-        bookingId: bookingRef.id,
-        booking: bookingData,
-        message: "Booking created. Awaiting admin payment verification."
-    });
-} catch (error) {
-    console.error("Booking creation failed:", error);
-
-    return res.status(500).json({
-        success: false,
-        message: "Unable to create booking"
-    });
-}
-
 });
