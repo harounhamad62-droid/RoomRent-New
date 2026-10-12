@@ -42,7 +42,34 @@ measurementId:
 let auth = null;
 let db = null;
 let storage = null;
+async function verifyRoomRentBackend(user) {
+    try {
+        const idToken = await user.getIdToken();
 
+        const response = await fetch(
+            "https://roomrent-new-production.up.railway.app/api/me",
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${idToken}`
+                }
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error("Backend authentication failed");
+        }
+
+        console.log("RoomRent backend verified:", result);
+        return true;
+
+    } catch (error) {
+        console.error("RoomRent backend verification failed:", error);
+        return false;
+    }
+            }
 try {
 
 if (typeof firebase === "undefined") {
@@ -508,7 +535,7 @@ await auth
 email,
 password
 );
-
+await verifyRoomRentBackend(auth.currentUser);
 setMessage(
 
 "signInMessage",      
