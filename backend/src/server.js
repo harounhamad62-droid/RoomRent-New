@@ -37,24 +37,7 @@ app.get("/health", (req, res) => {
     });
 });
 
-app.get("/firebase-check", async (req, res) => {
-    try {
-        await db.collection("users").limit(1).get();
 
-        res.status(200).json({
-            success: true,
-            firebase: "connected",
-            firestore: "accessible"
-        });
-    } catch (error) {
-        console.error("Firestore connection check failed:", error.message);
-
-        res.status(500).json({
-            success: false,
-            message: "Firestore connection failed"
-        });
-    }
-});
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`RoomRent backend running on port ${PORT}`);
 });
