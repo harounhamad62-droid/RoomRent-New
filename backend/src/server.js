@@ -11,8 +11,12 @@ const PORT = process.env.PORT || 3000;
 
 // Initialize Firebase Admin using the hosting environment.
 if (!admin.apps.length) {
+    const serviceAccount = JSON.parse(
+        process.env.FIREBASE_SERVICE_ACCOUNT
+    );
+
     admin.initializeApp({
-        credential: admin.credential.applicationDefault()
+        credential: admin.credential.cert(serviceAccount)
     });
 }
 
