@@ -4992,203 +4992,107 @@ async function anzishaAdminBookingsListener() {
 
 /* =========================================================
 30.2A ADMIN CONFIRM BOOKING
-========================================================= */
-async function thibitishaBookingAdmin(
-    bookingId
-) {
-
-    if (!requireAdmin()) {
-        return;
-    }
-
-    bookingId =
-        String(bookingId).trim();
-
-    console.log(
-        "RoomRent Admin: Booking ID:",
-        JSON.stringify(bookingId)
-    );
-
-    const bookingRef =
-        db
-            .collection("bookings")
-            .doc(bookingId);
-
-
+========================================================= 
+async function thibitishaBookingAdmin(bookingId) {
     try {
-
-        const confirmed =
-            confirm(
-                "Una uhakika unataka kuthibitisha booking hii?"
-            );
-
-
-        if (!confirmed) {
+        if (!currentUser) {
+            alert("Tafadhali ingia kwenye akaunti yako.");
             return;
         }
 
+        const token = await currentUser.getIdToken();
 
-                const mudaWaUthibitisho =
-            firebase.firestore.FieldValue.serverTimestamp();
-
-        await bookingRef.update({
-
-            adminConfirmed: true,
-
-            paymentStatus: "verified",
-
-            bookingStatus: "active",
-
-            profitStatus: "running",
-
-            profitStartAt: mudaWaUthibitisho,
-
-            adminConfirmedAt: mudaWaUthibitisho,
-
-            updatedAt:
-                firebase.firestore.FieldValue.serverTimestamp()
-
-        });
-
-
-        alert(
-            "✅ Booking imethibitishwa kikamilifu."
+        const response = await fetch(
+            "https://roomrent-new-production.up.railway.app/api/admin/bookings/" +
+                encodeURIComponent(bookingId) +
+                "/confirm",
+            {
+                method: "POST",
+                headers: {
+                    "Authorization": "Bearer " + token,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({})
+            }
         );
 
+        const result = await response.json();
 
-        await anzishaAdminBookingsListener();
+        if (!response.ok || !result.success) {
+            throw new Error(
+                result.message || "Imeshindwa kuthibitisha booking."
+            );
+        }
 
+        alert("Booking imethibitishwa kwa mafanikio.");
+
+        window.location.reload();
 
     } catch (error) {
-
-        console.error(
-            "RoomRent Admin confirm booking error:",
-            error
-        );
-
+        console.error("Hitilafu ya kuthibitisha booking:", error);
 
         alert(
-            "❌ Imeshindikana kuthibitisha booking.\n\n" +
-            (
-                error.message ||
-                "Firebase error"
-            )
+            error.message ||
+            "Kumetokea hitilafu. Tafadhali jaribu tena."
         );
-
     }
-
 }
-
 
 /* =========================================================
 30.2B ADMIN REJECT BOOKING
 ========================================================= */
-async function kataaBookingAdmin(
-    bookingId
-) {
-
-    if (!requireAdmin()) {
-        return;
-    }
-
-    bookingId =
-        String(bookingId).trim();
-
-    console.log(
-        "RoomRent Admin: Booking ID:",
-        JSON.stringify(bookingId)
-    );
-
-    const reason =
-        prompt(
-
-            "Andika sababu ya kukataa booking hii:"
-        );
-
-
-    if (reason === null) {
-        return;
-    }
-
-
-    const cleanReason =
-        reason.trim();
-
-
-    if (!cleanReason) {
-
-        alert(
-            "⚠️ Lazima uweke sababu ya kukataa booking."
-        );
-
-        return;
-    }
-
-
-    const bookingRef =
-        db
-            .collection("bookings")
-            .doc(bookingId);
-
-
+async function kataaBookingAdmin(bookingId) {
     try {
+        if (!currentUser) {
+            alert("Tafadhali ingia kwenye akaunti yako.");
+            return;
+        }
 
-        await bookingRef.update({
-
-            adminConfirmed:
-                false,
-
-            paymentStatus:
-                "rejected",
-
-            bookingStatus:
-                "rejected",
-
-            profitStatus:
-                "not_started",
-
-            rejectionReason:
-                cleanReason,
-
-            rejectedAt:
-                firebase.firestore.FieldValue
-                    .serverTimestamp(),
-
-            updatedAt:
-                firebase.firestore.FieldValue
-                    .serverTimestamp()
-
-        });
-
-
-        alert(
-            "❌ Booking imekataliwa."
+        const amekubali = confirm(
+            "Una uhakika unataka kukataa booking hii?"
         );
 
+        if (!amekubali) {
+            return;
+        }
 
-        await anzishaAdminBookingsListener();
+        const token = await currentUser.getIdToken();
 
+        const response = await fetch(
+            "https://roomrent-new-production.up.railway.app/api/admin/bookings/" +
+                encodeURIComponent(bookingId) +
+                "/reject",
+            {
+                method: "POST",
+                headers: {
+                    "Authorization": "Bearer " + token,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({})
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(
+                result.message || "Imeshindwa kukataa booking."
+            );
+        }
+
+        alert("Booking imekataliwa.");
+
+        window.location.reload();
 
     } catch (error) {
-
-        console.error(
-            "RoomRent Admin reject booking error:",
-            error
-        );
-
+        console.error("Hitilafu ya kukataa booking:", error);
 
         alert(
-            "❌ Imeshindikana kukataa booking.\n\n" +
-            (
-                error.message ||
-                "Firebase error"
-            )
+            error.message ||
+            "Kumetokea hitilafu. Tafadhali jaribu tena."
         );
-
     }
-
-                    }            
-
+                }
 /* =========================================================
 30.3 EXPOSE ADMIN FUNCTIONS
 ========================================================= */
