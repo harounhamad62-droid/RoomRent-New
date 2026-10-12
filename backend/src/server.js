@@ -21,7 +21,43 @@ if (!admin.apps.length) {
 }
 
 const db = admin.firestore();
+// Verify Firebase Authentication tokens.
+async function authenticateUser(req, res, next) {
+    try {
+        const authHeader = req.headers.authorization || "";
 
+        if (!authHeader.startsWith("Bearer ")) {
+            return res.status(401).json({
+                success: false,
+                message: "Authentication required"
+            });
+        }
+
+        const idToken = authHeader.substring(7);
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+
+        req.user = {
+            uid: decodedToken.uid,
+            email: decodedToken.email || null
+        };
+
+        next();
+    } catch (error) {
+        return res.status(401).json({
+            success: false,
+            message: "Invalid or expired authentication token"
+        });
+    }
+}
+
+// Protected test endpoint.
+app.get("/api/me", authenticateUser, (req, res) => {
+    res.status(200).json({
+        success: true,
+        uid: req.user.uid,
+        email: req.user.email
+    });
+});
 app.get("/", (req, res) => {
     res.status(200).json({
         success: true,
