@@ -4828,7 +4828,9 @@ async function anzishaAdminBookingsListener() {
                                             class="
                                                 admin-confirm-button
                                             "
-                                            data-booking-id="${booking.id}">
+                                            data-booking-id="
+                                                ${booking.id}
+                                            ">
 
                                             ✅ Thibitisha Booking
 
@@ -4840,7 +4842,9 @@ async function anzishaAdminBookingsListener() {
                                             class="
                                                 admin-reject-button
                                             "
-                                            data-booking-id="${booking.id}">
+                                            data-booking-id="
+                                                ${booking.id}
+                                            ">
 
                                             ❌ Kataa Booking
 
@@ -4907,19 +4911,17 @@ async function anzishaAdminBookingsListener() {
                     async function() {
 
                         const bookingId =
-    (button.dataset.bookingId || "").trim();
+                            button.dataset.bookingId;
 
-console.log(
-    "RoomRent: ID ya booking inayotumwa kuthibitisha:",
-    JSON.stringify(bookingId)
-);
+                        await thibitishaBookingAdmin(
+                            bookingId
+                        );
 
-if (!bookingId) {
-    alert("ID ya booking haijapatikana.");
-    return;
-    }
+                    }
+                );
 
-        
+            }
+        );
 
 
         /* =================================================
@@ -5194,4 +5196,3 @@ function hesabuFaidaYaBooking(booking) {
 }
 
 window.hesabuFaidaYaBooking = hesabuFaidaYaBooking;
-
