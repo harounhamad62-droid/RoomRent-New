@@ -3917,7 +3917,182 @@ function() {
 );
 
 }
+/* -----------------------------------------------------
+WITHDRAWAL FORM
+----------------------------------------------------- */
 
+const withdrawalForm =
+    getElement("withdrawalForm");
+
+if (withdrawalForm) {
+
+    withdrawalForm.addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+            const message =
+                getElement("withdrawalMessage");
+
+            const notice =
+                getElement("withdrawalProcessingNotice");
+
+            const submitButton =
+                getElement("withdrawalSubmitButton");
+
+            const amountInput =
+                getElement("withdrawalAmount");
+
+            const methodInput =
+                getElement("withdrawalMethod");
+
+            const phoneInput =
+                getElement("withdrawalPhone");
+
+            function showWithdrawalMessage(
+                text,
+                success = false
+            ) {
+                if (message) {
+                    message.textContent = text;
+                    message.style.color =
+                        success ? "green" : "red";
+                }
+            }
+
+            if (!currentUser) {
+                showWithdrawalMessage(
+                    "Tafadhali ingia kwenye akaunti yako kwanza."
+                );
+                return;
+            }
+
+            const amount = Number(
+                amountInput.value
+            );
+
+            const method = methodInput.value;
+
+            const phone = phoneInput.value.trim();
+
+            if (
+                !Number.isSafeInteger(amount) ||
+                amount < 3000
+            ) {
+                showWithdrawalMessage(
+                    "Kiasi cha chini ni TSh 3,000."
+                );
+                return;
+            }
+
+            if (!["airtel", "mixx"].includes(method)) {
+                showWithdrawalMessage(
+                    "Tafadhali chagua njia ya malipo."
+                );
+                return;
+            }
+
+            if (!phone) {
+                showWithdrawalMessage(
+                    "Tafadhali weka namba ya simu."
+                );
+                return;
+            }
+
+            const confirmed = window.confirm(
+                "Unaomba kutoa TSh " +
+                amount.toLocaleString("en-US") +
+                ". Ada ya 10% ni TSh " +
+                Math.round(amount * 0.10)
+                    .toLocaleString("en-US") +
+                ". Utapokea TSh " +
+                (amount - Math.round(amount * 0.10))
+                    .toLocaleString("en-US") +
+                ". Endelea?"
+            );
+
+            if (!confirmed) {
+                return;
+            }
+
+            submitButton.disabled = true;
+
+            showWithdrawalMessage(
+                "Inatuma ombi lako..."
+            );
+
+            try {
+
+                const idToken =
+                    await currentUser.getIdToken();
+
+                const response = await fetch(
+                    "https://roomrent-new-production.up.railway.app/api/withdrawals",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization":
+                                "Bearer " + idToken
+                        },
+
+                        body: JSON.stringify({
+                            amount: amount,
+                            method: method,
+                            phone: phone
+                        })
+                    }
+                );
+
+                const result =
+                    await response.json();
+
+                if (!response.ok || !result.success) {
+                    throw new Error(
+                        result.message ||
+                        "Ombi halikufanikiwa."
+                    );
+                }
+
+                showWithdrawalMessage(
+                    "Ombi limepokelewa kwa mafanikio.",
+                    true
+                );
+
+                if (notice) {
+                    notice.style.display = "block";
+                }
+
+                withdrawalForm.reset();
+
+                window.scrollTo({
+                    top: document.body.scrollHeight,
+                    behavior: "smooth"
+                });
+
+            } catch (error) {
+
+                console.error(
+                    "RoomRent Withdrawal:",
+                    error
+                );
+
+                showWithdrawalMessage(
+                    error.message ||
+                    "Imeshindikana kutuma ombi. Jaribu tena."
+                );
+
+            } finally {
+
+                submitButton.disabled = false;
+
+            }
+        }
+    );
+        }
+    
 const referralButton =
 getElement(
 "referralButton"
