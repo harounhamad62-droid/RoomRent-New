@@ -1413,31 +1413,64 @@
                         </p>
 
                     </div>
+<!-- =================================================
+     ADMIN WITHDRAWAL MANAGEMENT
+================================================== --><div class="info-card"><h3>💰 Withdrawal Management</h3>
 
+<p>
+    Angalia maombi ya kutoa fedha, kubali au kataa
+    maombi yanayosubiri kushughulikiwa.
+</p>
 
-                    <!-- =================================================
-                         WITHDRAWAL MANAGEMENT
-                    ================================================== -->
+<button
+    type="button"
+    id="adminWithdrawalsBtn"
+    class="primary-button"
+>
+    📋 Angalia Withdrawal Requests
+</button>
 
-                    <div class="info-card">
+<p
+    id="adminWithdrawalsMessage"
+    class="form-message"
+    aria-live="polite"
+></p>
 
-                        <h3>
-                            💰 Withdrawal Management
-                        </h3>
+</div><!-- ORODHA YA WITHDRAWAL REQUESTS --><div
+    id="adminWithdrawalsPanel"
+    style="display: none;"
+><div class="section-header">
 
-                        <p>
-                            Usimamizi wa withdrawal requests
-                            utaongezwa baada ya booking management.
-                        </p>
+    <div>
+        <h3>Withdrawal Requests</h3>
 
-                    </div>
+        <p>
+            Maombi yote ya wateja
+        </p>
+    </div>
+
+    <button
+        type="button"
+        id="refreshAdminWithdrawalsBtn"
+        class="secondary-button"
+    >
+        🔄 Refresh
+    </button>
+
+</div>
+
+<div
+    id="adminWithdrawalsList"
+    class="history-list"
+></div>
+
+</div>
 
                 </div>
 
             </section>
 
         </div>
-
 
         <!-- =================================================
              BOTTOM NAVIGATION
