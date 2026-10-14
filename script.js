@@ -3670,6 +3670,167 @@ function() {
 
 }
 
+/* =====================================================
+   ROOMRENT: LOAD WITHDRAWAL HISTORY
+===================================================== */
+
+async function loadWithdrawalHistory() {
+
+    const list = getElement("withdrawalHistoryList");
+
+    if (!list) {
+        console.error(
+            "Withdrawal History list haijapatikana."
+        );
+        return;
+    }
+
+    if (!currentUser) {
+        list.textContent =
+            "Tafadhali ingia kwenye akaunti yako kwanza.";
+        return;
+    }
+
+    list.textContent = "Inapakia historia ya withdrawals...";
+
+    try {
+
+        const idToken = await currentUser.getIdToken();
+
+        const response = await fetch(
+            "https://roomrent-new-production.up.railway.app/api/my/withdrawals",
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + idToken
+                }
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(
+                result.message ||
+                "Imeshindwa kupakia historia ya withdrawals."
+            );
+        }
+
+        const withdrawals = Array.isArray(result.withdrawals)
+            ? result.withdrawals
+            : [];
+
+        list.replaceChildren();
+
+        if (withdrawals.length === 0) {
+
+            const emptyMessage = document.createElement("p");
+
+            emptyMessage.textContent =
+                "Bado hujafanya ombi lolote la kutoa fedha.";
+
+            list.appendChild(emptyMessage);
+
+            return;
+        }
+
+        withdrawals.forEach(function(item) {
+
+            const card = document.createElement("div");
+            card.className = "info-card";
+
+            const title = document.createElement("h3");
+            title.textContent =
+                "Ombi la TSh " +
+                Number(item.amount || 0).toLocaleString("en-US");
+
+            const fee = document.createElement("p");
+            fee.textContent =
+                "Ada: TSh " +
+                Number(item.fee || 0).toLocaleString("en-US");
+
+            const payout = document.createElement("p");
+            payout.textContent =
+                "Kiasi cha kupokea: TSh " +
+                Number(item.payoutAmount || 0)
+                    .toLocaleString("en-US");
+
+            const method = document.createElement("p");
+            method.textContent =
+                "Njia: " +
+                (
+                    item.method === "airtel"
+                        ? "Airtel Money"
+                        : item.method === "mixx"
+                            ? "Mixx By Yas"
+                            : "Haijatajwa"
+                );
+
+            const status = document.createElement("p");
+            const statusValue = String(
+                item.status || "pending"
+            ).toLowerCase();
+
+            const statusLabels = {
+                pending: "Inasubiri kukaguliwa",
+                approved: "Imeidhinishwa — malipo bado hayajathibitishwa",
+                rejected: "Imekataliwa",
+                paid: "Imelipwa"
+            };
+
+            status.textContent =
+                "Hali: " +
+                (statusLabels[statusValue] || statusValue);
+
+            const date = document.createElement("p");
+
+            let dateValue = null;
+
+            if (item.createdAtMs) {
+                dateValue = new Date(item.createdAtMs);
+            } else if (
+                item.createdAt &&
+                item.createdAt._seconds
+            ) {
+                dateValue = new Date(
+                    item.createdAt._seconds * 1000
+                );
+            }
+
+            date.textContent =
+                "Tarehe: " +
+                (
+                    dateValue && !isNaN(dateValue.getTime())
+                        ? dateValue.toLocaleString("sw-TZ")
+                        : "Haijapatikana"
+                );
+
+            card.append(
+                title,
+                fee,
+                payout,
+                method,
+                status,
+                date
+            );
+
+            list.appendChild(card);
+
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Withdrawal History error:",
+            error
+        );
+
+        list.textContent =
+            "Imeshindwa kupakia historia. Tafadhali jaribu tena.";
+
+    }
+}
+
 /* =========================================================
 26. INITIALIZE ROOMS
 ========================================================= */
@@ -4240,6 +4401,68 @@ function() {
 
 }
 
+    /* -----------------------------------------------------
+MORE NAVIGATION
+----------------------------------------------------- */
+
+const moreNavButton =
+getElement("moreNavButton");
+
+if (moreNavButton) {
+
+moreNavButton.addEventListener(
+    "click",
+    function() {
+
+        showSection("moreSection");
+
+    }
+);
+
+}
+
+/* -----------------------------------------------------
+MORE: WITHDRAWAL HISTORY
+----------------------------------------------------- */
+
+const moreWithdrawalHistoryButton =
+getElement("moreWithdrawalHistoryButton");
+
+if (moreWithdrawalHistoryButton) {
+
+moreWithdrawalHistoryButton.addEventListener(
+    "click",
+    async function() {
+
+        showSection("withdrawalHistorySection");
+
+        await loadWithdrawalHistory();
+
+    }
+);
+
+}
+
+/* -----------------------------------------------------
+MORE: LOG OUT
+----------------------------------------------------- */
+
+const moreLogoutButton =
+getElement("moreLogoutButton");
+
+if (moreLogoutButton) {
+
+moreLogoutButton.addEventListener(
+    "click",
+    function() {
+
+        signOutUser();
+
+    }
+);
+
+    }
+    
 /* -----------------------------------------------------
 BACK BUTTONS
 ----------------------------------------------------- */
