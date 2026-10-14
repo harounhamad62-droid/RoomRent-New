@@ -4463,37 +4463,18 @@ moreLogoutButton.addEventListener(
 
     }
 
-    /* -----------------------------------------------------
-MORE: CUSTOMER SERVICE
+ /* -----------------------------------------------------
+MORE: CUSTOMER SERVICE - WHATSAPP
 ----------------------------------------------------- */
 
-const customerServiceButton =
-getElement("customerServiceButton");
+const customerServiceButton = getElement("customerServiceButton");
 
 if (customerServiceButton) {
-
-customerServiceButton.addEventListener(
-    "click",
-    function() {
-
-        // Badilisha namba hii iwe namba rasmi
-        // ya WhatsApp ya huduma kwa wateja.
+    customerServiceButton.addEventListener("click", function () {
         const customerServicePhone = "255703551515";
 
-        if (
-            !/^255\d{9}$/.test(customerServicePhone)
-        ) {
-
-            alert(
-                "Namba rasmi ya WhatsApp ya huduma kwa wateja bado haijawekwa."
-            );
-
-            return;
-        }
-
         const message =
-            "Habari RoomRent Customer Service, " +
-            "nahitaji msaada kuhusu akaunti yangu.";
+            "Habari RoomRent Customer Service, nahitaji msaada kuhusu akaunti yangu.";
 
         const whatsappURL =
             "https://wa.me/" +
@@ -4501,15 +4482,8 @@ customerServiceButton.addEventListener(
             "?text=" +
             encodeURIComponent(message);
 
-        window.open(
-            whatsappURL,
-            "_blank",
-            "noopener,noreferrer"
-        );
-
-    }
-);
-
+        window.open(whatsappURL, "_blank", "noopener,noreferrer");
+    });
 }
     
 /* -----------------------------------------------------
