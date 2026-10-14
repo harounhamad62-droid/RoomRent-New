@@ -3846,6 +3846,307 @@ console.log(
 }
 
 /* =========================================================
+   ADMIN WITHDRAWAL MANAGEMENT
+========================================================= */
+
+const ROOMRENT_API_URL =
+    "https://roomrent-new-production.up.railway.app";
+
+
+async function loadAdminWithdrawals() {
+    const panel = document.getElementById("adminWithdrawalsPanel");
+    const list = document.getElementById("adminWithdrawalsList");
+    const message = document.getElementById("adminWithdrawalsMessage");
+
+    if (!panel || !list || !message) {
+        console.error("Admin withdrawal HTML elements hazijapatikana.");
+        return;
+    }
+
+    if (!currentUser) {
+        message.textContent = "Tafadhali ingia kwenye akaunti yako.";
+        return;
+    }
+
+    panel.style.display = "block";
+    list.textContent = "Inapakia maombi ya withdrawal...";
+
+    message.textContent = "";
+
+    try {
+        const token = await currentUser.getIdToken();
+
+        const response = await fetch(
+            `${ROOMRENT_API_URL}/api/admin/withdrawals`,
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                result.message ||
+                result.error ||
+                "Imeshindikana kupata withdrawal requests."
+            );
+        }
+
+        const withdrawals = Array.isArray(result)
+            ? result
+            : (
+                result.withdrawals ||
+                result.requests ||
+                result.data ||
+                []
+            );
+
+        renderAdminWithdrawals(withdrawals);
+
+        message.textContent =
+            `Maombi yaliyopatikana: ${withdrawals.length}`;
+
+    } catch (error) {
+        console.error("Admin withdrawals error:", error);
+
+        list.textContent =
+            "Imeshindikana kupakia maombi. Tafadhali jaribu tena.";
+
+        message.textContent =
+            error.message || "Hitilafu imetokea.";
+    }
+}
+
+
+/* =========================================================
+   RENDER WITHDRAWAL REQUESTS
+========================================================= */
+
+function renderAdminWithdrawals(withdrawals) {
+    const list = document.getElementById("adminWithdrawalsList");
+
+    if (!list) return;
+
+    list.replaceChildren();
+
+    if (!withdrawals.length) {
+        const emptyMessage = document.createElement("p");
+
+        emptyMessage.textContent =
+            "Bado hakuna withdrawal requests.";
+
+        list.appendChild(emptyMessage);
+        return;
+    }
+
+    withdrawals.forEach((item) => {
+        const card = document.createElement("div");
+
+        card.className = "info-card";
+
+        const heading = document.createElement("h3");
+        heading.textContent =
+            `Withdrawal: ${item.status || "pending"}`;
+
+        const customer = document.createElement("p");
+        customer.textContent =
+            `Email: ${item.email || "Haijawekwa"}`;
+
+        const amount = document.createElement("p");
+        amount.textContent =
+            `Kiasi kilichoombwa: TSh ${Number(item.amount || 0).toLocaleString("en-TZ")}`;
+
+        const fee = document.createElement("p");
+        fee.textContent =
+            `Ada ya 10%: TSh ${Number(item.fee || 0).toLocaleString("en-TZ")}`;
+
+        const payout = document.createElement("p");
+        payout.textContent =
+            `Kiasi cha kulipwa: TSh ${Number(item.payoutAmount || 0).toLocaleString("en-TZ")}`;
+
+        const method = document.createElement("p");
+        method.textContent =
+            `Njia: ${item.method || "Haijawekwa"}`;
+
+        const phone = document.createElement("p");
+        phone.textContent =
+            `Namba ya malipo: ${item.phone || "Haijawekwa"}`;
+
+        const date = document.createElement("p");
+
+        let dateText = "Haijulikani";
+
+        if (item.createdAtMs) {
+            dateText = new Date(item.createdAtMs).toLocaleString();
+        } else if (item.createdAt && item.createdAt._seconds) {
+            dateText = new Date(
+                item.createdAt._seconds * 1000
+            ).toLocaleString();
+        }
+
+        date.textContent = `Tarehe: ${dateText}`;
+
+        card.append(
+            heading,
+            customer,
+            amount,
+            fee,
+            payout,
+            method,
+            phone,
+            date
+        );
+
+        if (item.adminNote) {
+            const note = document.createElement("p");
+
+            note.textContent = `Maelezo ya Admin: ${item.adminNote}`;
+
+            card.appendChild(note);
+        }
+
+        if (item.status === "pending") {
+            const approveButton = document.createElement("button");
+
+            approveButton.type = "button";
+            approveButton.className = "primary-button";
+            approveButton.textContent = "Kubali Ombi";
+
+            approveButton.addEventListener("click", async () => {
+                await updateAdminWithdrawal(
+                    item.id || item.withdrawalId,
+                    "approve"
+                );
+            });
+
+            const rejectButton = document.createElement("button");
+
+            rejectButton.type = "button";
+            rejectButton.className = "secondary-button";
+            rejectButton.textContent = "Kataa Ombi";
+
+            rejectButton.addEventListener("click", async () => {
+                await updateAdminWithdrawal(
+                    item.id || item.withdrawalId,
+                    "reject"
+                );
+            });
+
+            const warning = document.createElement("p");
+
+            warning.textContent =
+                "Kumbuka: Kukubali ombi hakumaanishi kuwa fedha tayari zimelipwa.";
+
+            card.append(
+                approveButton,
+                rejectButton,
+                warning
+            );
+        }
+
+        list.appendChild(card);
+    });
+}
+
+
+/* =========================================================
+   APPROVE OR REJECT WITHDRAWAL
+========================================================= */
+
+async function updateAdminWithdrawal(withdrawalId, action) {
+    if (!currentUser) {
+        alert("Tafadhali ingia kwanza.");
+        return;
+    }
+
+    if (!withdrawalId) {
+        alert("Kitambulisho cha ombi hakijapatikana.");
+        return;
+    }
+
+    let reason = "";
+
+    if (action === "reject") {
+        reason = prompt(
+            "Andika sababu ya kukataa withdrawal request:"
+        );
+
+        if (reason === null) return;
+
+        reason = reason.trim();
+
+        if (!reason) {
+            alert("Tafadhali andika sababu ya kukataa ombi.");
+            return;
+        }
+
+        if (!confirm("Una uhakika unataka kukataa ombi hili?")) {
+            return;
+        }
+    } else {
+        if (!confirm(
+            "Unataka kukubali ombi hili? Kumbuka, hatua hii haithibitishi kuwa fedha zimelipwa."
+        )) {
+            return;
+        }
+    }
+
+    try {
+        const token = await currentUser.getIdToken();
+
+        const endpoint = action === "approve"
+            ? "approve"
+            : "reject";
+
+        const response = await fetch(
+            `${ROOMRENT_API_URL}/api/admin/withdrawals/${encodeURIComponent(withdrawalId)}/${endpoint}`,
+            {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(
+                    action === "reject"
+                        ? { reason }
+                        : {}
+                )
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                result.message ||
+                result.error ||
+                "Imeshindikana kubadilisha ombi."
+            );
+        }
+
+        alert(
+            action === "approve"
+                ? "Ombi limekubaliwa. Kumbuka kufanya malipo halisi kabla ya kulichukulia kuwa limekamilika."
+                : "Ombi limekataliwa. Mfumo utarejesha kiasi kilichohifadhiwa kwenye salio kulingana na utaratibu wa backend."
+        );
+
+        await loadAdminWithdrawals();
+
+    } catch (error) {
+        console.error("Withdrawal update error:", error);
+
+        alert(
+            error.message ||
+            "Hitilafu imetokea. Tafadhali jaribu tena."
+        );
+    }
+    }
+
+/* =========================================================
 27. EVENT BINDING
 ========================================================= */
 
@@ -4276,6 +4577,26 @@ if (referralButton) {
 
 }
 
+ /* ADMIN WITHDRAWAL BUTTONS */
+
+const adminWithdrawalsBtn =
+    document.getElementById("adminWithdrawalsBtn");
+
+if (adminWithdrawalsBtn) {
+    adminWithdrawalsBtn.addEventListener("click", () => {
+        loadAdminWithdrawals();
+    });
+}
+
+const refreshAdminWithdrawalsBtn =
+    document.getElementById("refreshAdminWithdrawalsBtn");
+
+if (refreshAdminWithdrawalsBtn) {
+    refreshAdminWithdrawalsBtn.addEventListener("click", () => {
+        loadAdminWithdrawals();
+    });
+    }
+    
 /* -----------------------------------------------------
 ADMIN BUTTON
 ----------------------------------------------------- */
