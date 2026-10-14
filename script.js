@@ -4867,8 +4867,6 @@ function(id) {
 
 );
 
-/* ADMIN ROOM MANAGEMENT */
-bindAdminRoomEvents();
 
 }
 
