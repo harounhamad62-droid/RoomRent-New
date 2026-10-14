@@ -5167,8 +5167,8 @@ function bindAdminRoomEvents() {
 
             const message = document.getElementById("adminRoomsMessage");
             if (message) message.textContent = "";
-       bindAdminRoomEvents(); });
-    }
+        });
+   bindAdminRoomEvents(); }
     }
 
 /* =========================================================
