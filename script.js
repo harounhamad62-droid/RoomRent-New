@@ -4850,34 +4850,25 @@ backButtons.forEach(
 
 function(id) {
 
-const button =      
-    getElement(id);      
+    const button = getElement(id);
 
+    if (!button) {
+        return;
+    }
 
-if (!button) {      
-
-    return;      
-
-}      
-
-
-button.addEventListener(      
-
-    "click",      
-
-    function() {      
-
-        showSection(      
-            "dashboardSection"      
-        );      
-
-    }      
-
-);
+    button.addEventListener(
+        "click",
+        function() {
+            showSection("dashboardSection");
+        }
+    );
 
 }
 
 );
+
+/* ADMIN ROOM MANAGEMENT */
+bindAdminRoomEvents();
 
 }
 
@@ -5001,11 +4992,9 @@ async function loadAdminRooms() {
         if (list) {
             list.textContent = "Imeshindikana kupakia vyumba.";
         }
-
-        if (message) {
-            message.textContent = error.message || "Hitilafu imetokea.";
-       bindAdminRoomEvents(); }
-    }
+if (message) {
+    message.textContent =
+        error.message || "Hitilafu imetokea.";
 }
 
 
