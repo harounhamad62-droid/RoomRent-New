@@ -1400,19 +1400,165 @@
                     <!-- =================================================
                          ROOM MANAGEMENT
                     ================================================== -->
+<!-- =========================================
+     ADMIN ROOM MANAGEMENT
+========================================= -->
 
-                    <div class="info-card">
+<div class="info-card">
 
-                        <h3>
-                            🏠 Room Management
-                        </h3>
+    <h3>🏠 Room Management</h3>
 
-                        <p>
-                            Usimamizi wa rooms, bei na picha
-                            utaongezwa kwenye hatua inayofuata.
-                        </p>
+    <p>
+        Ongeza vyumba, badilisha bei na weka picha
+        za vyumba vinavyopatikana.
+    </p>
 
-                    </div>
+    <button
+        type="button"
+        id="adminRoomsBtn"
+        class="primary-button"
+    >
+        🏠 Simamia Vyumba
+    </button>
+
+    <p
+        id="adminRoomsMessage"
+        class="form-message"
+        aria-live="polite"
+    ></p>
+
+</div>
+
+<!-- ROOM MANAGEMENT PANEL -->
+
+<div
+    id="adminRoomsPanel"
+    style="display: none;"
+>
+
+    <div class="section-header">
+        <div>
+            <h3>Usimamizi wa Vyumba</h3>
+            <p>Ongeza au hariri taarifa za chumba.</p>
+        </div>
+    </div>
+
+    <!-- ADD / EDIT ROOM FORM -->
+
+    <form id="adminRoomForm">
+
+        <input
+            type="hidden"
+            id="adminRoomDocumentId"
+        >
+
+        <label for="adminRoomNumber">
+            Namba ya Chumba
+        </label>
+
+        <input
+            type="text"
+            id="adminRoomNumber"
+            placeholder="Mfano: ROOM0033"
+            required
+        >
+
+        <label for="adminRoomName">
+            Jina la Chumba
+        </label>
+
+        <input
+            type="text"
+            id="adminRoomName"
+            placeholder="Mfano: Chumba cha Kawaida"
+            required
+        >
+
+        <label for="adminRoomPrice">
+            Bei ya Chumba (TSh)
+        </label>
+
+        <input
+            type="number"
+            id="adminRoomPrice"
+            min="1"
+            step="1"
+            placeholder="Mfano: 30000"
+            required
+        >
+
+        <label for="adminRoomDuration">
+            Muda wa Kukodisha (Siku)
+        </label>
+
+        <input
+            type="number"
+            id="adminRoomDuration"
+            min="1"
+            step="1"
+            value="90"
+            required
+        >
+
+        <label for="adminRoomImage">
+            Picha ya Chumba
+        </label>
+
+        <input
+            type="file"
+            id="adminRoomImage"
+            accept="image/jpeg,image/png,image/webp"
+        >
+
+        <small>
+            Tumia picha ya JPG, PNG au WebP.
+        </small>
+
+        <div
+            id="adminRoomImagePreview"
+            style="margin-top: 10px;"
+        ></div>
+
+        <button
+            type="submit"
+            id="adminSaveRoomBtn"
+            class="primary-button"
+        >
+            💾 Hifadhi Chumba
+        </button>
+
+        <button
+            type="button"
+            id="adminCancelRoomEditBtn"
+            class="secondary-button"
+        >
+            Ghairi Kuhariri
+        </button>
+
+    </form>
+
+    <hr>
+
+    <div class="section-header">
+        <div>
+            <h3>Vyumba Vilivyopo</h3>
+        </div>
+
+        <button
+            type="button"
+            id="adminRefreshRoomsBtn"
+            class="secondary-button"
+        >
+            🔄 Refresh
+        </button>
+    </div>
+
+    <div
+        id="adminRoomsList"
+        class="history-list"
+    ></div>
+
+            </div>
 <!-- =================================================
      ADMIN WITHDRAWAL MANAGEMENT
 ================================================== --><div class="info-card"><h3>💰 Withdrawal Management</h3>
