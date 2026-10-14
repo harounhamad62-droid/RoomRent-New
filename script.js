@@ -4485,6 +4485,21 @@ if (customerServiceButton) {
         window.open(whatsappURL, "_blank", "noopener,noreferrer");
     });
 }
+
+    /* -----------------------------------------------------
+MORE: DOWNLOAD APP
+----------------------------------------------------- */
+
+const downloadAppButton = getElement("downloadAppButton");
+
+if (downloadAppButton) {
+downloadAppButton.addEventListener("click", function () {
+const appURL = "https://harounhamad62-droid.github.io/RoomRent-New/";
+
+    window.open(appURL, "_blank", "noopener,noreferrer");
+});
+
+}
     
 /* -----------------------------------------------------
 BACK BUTTONS
