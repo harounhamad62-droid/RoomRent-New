@@ -5004,7 +5004,7 @@ async function loadAdminRooms() {
 
         if (message) {
             message.textContent = error.message || "Hitilafu imetokea.";
-        }
+       bindAdminRoomEvents(); }
     }
 }
 
@@ -5168,7 +5168,7 @@ function bindAdminRoomEvents() {
             const message = document.getElementById("adminRoomsMessage");
             if (message) message.textContent = "";
         });
-   bindAdminRoomEvents(); }
+    }
     }
 
 /* =========================================================
