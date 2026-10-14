@@ -4486,7 +4486,7 @@ if (customerServiceButton) {
     });
 }
 
-    /* -----------------------------------------------------
+  /* -----------------------------------------------------
 MORE: DOWNLOAD APP
 ----------------------------------------------------- */
 
@@ -4494,12 +4494,10 @@ const downloadAppButton = getElement("downloadAppButton");
 
 if (downloadAppButton) {
 downloadAppButton.addEventListener("click", function () {
-const appURL = "https://harounhamad62-droid.github.io/RoomRent-New/";
-
-    window.open(appURL, "_blank", "noopener,noreferrer");
+window.location.href =
+"https://harounhamad62-droid.github.io/RoomRent-New/";
 });
-
-}
+    }  
     
 /* -----------------------------------------------------
 BACK BUTTONS
