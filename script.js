@@ -4462,6 +4462,55 @@ moreLogoutButton.addEventListener(
 );
 
     }
+
+    /* -----------------------------------------------------
+MORE: CUSTOMER SERVICE
+----------------------------------------------------- */
+
+const customerServiceButton =
+getElement("customerServiceButton");
+
+if (customerServiceButton) {
+
+customerServiceButton.addEventListener(
+    "click",
+    function() {
+
+        // Badilisha namba hii iwe namba rasmi
+        // ya WhatsApp ya huduma kwa wateja.
+        const customerServicePhone = "255703551515";
+
+        if (
+            !/^255\d{9}$/.test(customerServicePhone)
+        ) {
+
+            alert(
+                "Namba rasmi ya WhatsApp ya huduma kwa wateja bado haijawekwa."
+            );
+
+            return;
+        }
+
+        const message =
+            "Habari RoomRent Customer Service, " +
+            "nahitaji msaada kuhusu akaunti yangu.";
+
+        const whatsappURL =
+            "https://wa.me/" +
+            customerServicePhone +
+            "?text=" +
+            encodeURIComponent(message);
+
+        window.open(
+            whatsappURL,
+            "_blank",
+            "noopener,noreferrer"
+        );
+
+    }
+);
+
+}
     
 /* -----------------------------------------------------
 BACK BUTTONS
