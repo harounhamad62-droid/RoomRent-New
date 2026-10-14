@@ -4882,6 +4882,296 @@ button.addEventListener(
 }
 
 /* =========================================================
+   ADMIN ROOM MANAGEMENT - ROOMRENT
+========================================================= */
+
+async function loadAdminRooms() {
+    const panel = document.getElementById("adminRoomsPanel");
+    const list = document.getElementById("adminRoomsList");
+    const message = document.getElementById("adminRoomsMessage");
+
+    if (!currentUser || !currentUserData) {
+        if (message) message.textContent = "Tafadhali ingia kwanza.";
+        return;
+    }
+
+    if (currentUser.uid !== "1kj3K591EHhHAOiSoxIp1xGve2x1") {
+        if (message) message.textContent = "Huna ruhusa ya Admin.";
+        return;
+    }
+
+    if (panel) panel.style.display = "block";
+    if (list) list.textContent = "Inapakia vyumba...";
+    if (message) message.textContent = "";
+
+    try {
+        const snapshot = await db.collection("rooms").get();
+
+        if (!list) return;
+
+        list.replaceChildren();
+
+        if (snapshot.empty) {
+            list.textContent =
+                "Hakuna vyumba vilivyohifadhiwa kwenye Firestore bado.";
+            return;
+        }
+
+        snapshot.forEach((doc) => {
+            const room = doc.data();
+            const card = document.createElement("div");
+
+            card.className = "info-card";
+
+            const title = document.createElement("h3");
+            title.textContent = room.name || doc.id;
+
+            const number = document.createElement("p");
+            number.textContent = `Namba: ${room.roomNumber || doc.id}`;
+
+            const price = document.createElement("p");
+            price.textContent =
+                `Bei: TSh ${Number(room.price || 0).toLocaleString("en-TZ")}`;
+
+            const duration = document.createElement("p");
+            duration.textContent = `Muda: ${Number(room.days || 90)} siku`;
+
+            card.append(title, number, price, duration);
+
+            const imageUrls = Array.isArray(room.imageUrls)
+                ? room.imageUrls
+                : [];
+
+            if (imageUrls.length) {
+                const image = document.createElement("img");
+                image.src = imageUrls[0];
+                image.alt = room.name || doc.id;
+                image.loading = "lazy";
+                image.style.maxWidth = "100%";
+                image.style.height = "auto";
+                image.style.borderRadius = "8px";
+                card.appendChild(image);
+            }
+
+            const editButton = document.createElement("button");
+            editButton.type = "button";
+            editButton.className = "secondary-button";
+            editButton.textContent = "✏️ Hariri";
+
+            editButton.addEventListener("click", () => {
+                document.getElementById("adminRoomDocumentId").value = doc.id;
+                document.getElementById("adminRoomNumber").value =
+                    room.roomNumber || doc.id;
+                document.getElementById("adminRoomName").value =
+                    room.name || "";
+                document.getElementById("adminRoomPrice").value =
+                    Number(room.price || 0);
+                document.getElementById("adminRoomDuration").value =
+                    Number(room.days || 90);
+
+                const preview = document.getElementById("adminRoomImagePreview");
+
+                if (preview) {
+                    preview.replaceChildren();
+
+                    imageUrls.forEach((url) => {
+                        const img = document.createElement("img");
+                        img.src = url;
+                        img.alt = "Picha ya chumba";
+                        img.style.maxWidth = "100px";
+                        img.style.margin = "5px";
+                        preview.appendChild(img);
+                    });
+                }
+
+                document.getElementById("adminRoomForm")
+                    ?.scrollIntoView({ behavior: "smooth" });
+            });
+
+            card.appendChild(editButton);
+            list.appendChild(card);
+        });
+
+        if (message) {
+            message.textContent = `Vyumba vilivyopatikana: ${snapshot.size}`;
+        }
+    } catch (error) {
+        console.error("Load admin rooms error:", error);
+
+        if (list) {
+            list.textContent = "Imeshindikana kupakia vyumba.";
+        }
+
+        if (message) {
+            message.textContent = error.message || "Hitilafu imetokea.";
+        }
+    }
+}
+
+
+/* =========================================================
+   SAVE ROOM
+========================================================= */
+
+async function saveAdminRoom(event) {
+    event.preventDefault();
+
+    if (!currentUser || !currentUserData ||
+        currentUser.uid !== "1kj3K591EHhHAOiSoxIp1xGve2x1") {
+        alert("Huna ruhusa ya Admin.");
+        return;
+    }
+
+    const message = document.getElementById("adminRoomsMessage");
+    const saveButton = document.getElementById("adminSaveRoomBtn");
+
+    const documentId = document.getElementById("adminRoomDocumentId").value.trim();
+    const roomNumber = document.getElementById("adminRoomNumber").value.trim();
+    const name = document.getElementById("adminRoomName").value.trim();
+    const price = Number(document.getElementById("adminRoomPrice").value);
+    const days = Number(document.getElementById("adminRoomDuration").value);
+    const imageInput = document.getElementById("adminRoomImage");
+    const file = imageInput?.files?.[0];
+
+    if (!roomNumber || !name || !Number.isSafeInteger(price) ||
+        price < 1 || !Number.isSafeInteger(days) || days < 1) {
+        alert("Tafadhali hakikisha taarifa zote zimejazwa kwa usahihi.");
+        return;
+    }
+
+    if (file && !["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+        alert("Chagua picha ya JPG, PNG au WebP.");
+        return;
+    }
+
+    if (file && file.size > 5 * 1024 * 1024) {
+        alert("Picha isizidi 5MB.");
+        return;
+    }
+
+    if (saveButton) saveButton.disabled = true;
+    if (message) message.textContent = "Inahifadhi chumba...";
+
+    try {
+        const roomRef = db.collection("rooms").doc(documentId || roomNumber);
+        const existing = await roomRef.get();
+
+        // Usibadilishe hati ya chumba kingine kwa bahati mbaya.
+        if (documentId && documentId !== roomNumber) {
+            const numberRef = db.collection("rooms").doc(roomNumber);
+            const numberDoc = await numberRef.get();
+
+            if (numberDoc.exists) {
+                throw new Error(
+                    "Namba hiyo tayari inatumika. Tumia namba tofauti."
+                );
+            }
+        }
+
+        let imageUrls = [];
+
+        if (existing.exists) {
+            const oldData = existing.data();
+            imageUrls = Array.isArray(oldData.imageUrls)
+                ? oldData.imageUrls
+                : [];
+        }
+
+        if (file) {
+            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+            const storagePath =
+                `rooms/${roomNumber}/${Date.now()}_${safeName}`;
+
+            const uploadRef = firebase.storage().ref().child(storagePath);
+            const uploadResult = await uploadRef.put(file);
+            const downloadUrl = await uploadResult.ref.getDownloadURL();
+
+            imageUrls = [...imageUrls, downloadUrl];
+        }
+
+        await roomRef.set({
+            roomNumber,
+            name,
+            price,
+            days,
+            imageUrls,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedBy: currentUser.uid
+        }, { merge: true });
+
+        if (message) {
+            message.textContent = "Chumba kimehifadhiwa kikamilifu.";
+        }
+
+        document.getElementById("adminRoomForm").reset();
+        document.getElementById("adminRoomDocumentId").value = "";
+
+        const preview = document.getElementById("adminRoomImagePreview");
+        if (preview) preview.replaceChildren();
+
+        await loadAdminRooms();
+
+    } catch (error) {
+        console.error("Save room error:", error);
+
+        if (message) {
+            message.textContent = error.message || "Imeshindikana kuhifadhi chumba.";
+        }
+    } finally {
+        if (saveButton) saveButton.disabled = false;
+    }
+}
+
+
+/* =========================================================
+   ADMIN ROOM EVENT LISTENERS
+========================================================= */
+
+function bindAdminRoomEvents() {
+    const roomsButton = document.getElementById("adminRoomsBtn");
+    const roomForm = document.getElementById("adminRoomForm");
+    const refreshButton = document.getElementById("adminRefreshRoomsBtn");
+    const cancelButton = document.getElementById("adminCancelRoomEditBtn");
+
+    if (roomsButton && !roomsButton.dataset.bound) {
+        roomsButton.dataset.bound = "true";
+
+        roomsButton.addEventListener("click", () => {
+            loadAdminRooms();
+        });
+    }
+
+    if (roomForm && !roomForm.dataset.bound) {
+        roomForm.dataset.bound = "true";
+
+        roomForm.addEventListener("submit", saveAdminRoom);
+    }
+
+    if (refreshButton && !refreshButton.dataset.bound) {
+        refreshButton.dataset.bound = "true";
+
+        refreshButton.addEventListener("click", loadAdminRooms);
+    }
+
+    if (cancelButton && !cancelButton.dataset.bound) {
+        cancelButton.dataset.bound = "true";
+
+        cancelButton.addEventListener("click", () => {
+            roomForm?.reset();
+
+            const idField = document.getElementById("adminRoomDocumentId");
+            if (idField) idField.value = "";
+
+            const preview = document.getElementById("adminRoomImagePreview");
+            if (preview) preview.replaceChildren();
+
+            const message = document.getElementById("adminRoomsMessage");
+            if (message) message.textContent = "";
+       bindAdminRoomEvents(); });
+    }
+    }
+
+/* =========================================================
 28. INITIALIZATION
 ========================================================= */
 
