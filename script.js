@@ -4847,39 +4847,26 @@ const backButtons = [
 ];
 
 backButtons.forEach(
+    function(id) {
+        const button = getElement(id);
 
-function(id) {
+        if (!button) {
+            return;
+        }
 
-const button =      
-    getElement(id);      
-
-
-if (!button) {      
-
-    return;      
-
-}      
-
-
-button.addEventListener(      
-
-    "click",      
-
-    function() {      
-
-        showSection(      
-            "dashboardSection"      
-        );      
-
-    }      
-
+        button.addEventListener(
+            "click",
+            function() {
+                showSection("dashboardSection");
+            }
+        );
+    }
 );
 
-}
+// Unganisha vitufe vya Admin Room Management
+bindAdminRoomEvents();
 
-);
-
-}
+    }
 
 /* =========================================================
    ADMIN ROOM MANAGEMENT - ROOMRENT
@@ -5003,10 +4990,11 @@ async function loadAdminRooms() {
         }
 
         if (message) {
-            message.textContent = error.message || "Hitilafu imetokea.";
-       bindAdminRoomEvents(); }
+            message.textContent =
+                error.message || "Hitilafu imetokea.";
+        }
     }
-}
+    }
 
 
 /* =========================================================
